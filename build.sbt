@@ -20,7 +20,12 @@ lazy val allProjects: Seq[ProjectReference] = Seq(
 
 lazy val root = Project("coed-root", file("."))
   .aggregate(allProjects: _*)
-  .dependsOn(common)
+  .dependsOn(server)
+  .dependsOn(client)
+  .settings(
+    mainClass in (Compile, run) := Some("org.catdog.server.ServerApp"),
+    fork in (Compile, run) := true)
+    // connectInput in (Compile, run):= true)
 
 lazy val common = Project("coed-common", file("common"))
   .settings(scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten)
@@ -29,9 +34,12 @@ lazy val server = Project("coed-server", file("server"))
   .settings(
     scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten,
     testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaTest, "-y", "org.scalatest.FreeSpec")))
+  .dependsOn(common % "test->test;compile->compile")
+
 
 
 lazy val client = Project("coed-client", file("client"))
   .settings(
     scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten,
     testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaTest, "-y", "org.scalatest.FreeSpec")))
+  .dependsOn(common % "test->test;compile->compile")
