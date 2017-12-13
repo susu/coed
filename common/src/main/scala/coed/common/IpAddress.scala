@@ -1,11 +1,10 @@
-package coed.client
+package coed.common
 
 import scala.util.Try
 
 final case class IpAddress(addr: String) extends AnyVal
 
-object LocalIp {
-
+object IpAddress {
   def whatIsMyIp(toward: String): Option[IpAddress] = {
     import scala.sys.process._
     import scala.language.postfixOps
