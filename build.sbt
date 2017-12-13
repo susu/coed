@@ -31,6 +31,7 @@ lazy val common = Project("coed-common", file("common"))
   .settings(scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten)
 
 lazy val server = Project("coed-server", file("server"))
+  .enablePlugins(StartScripts)
   .settings(
     scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten,
     testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaTest, "-y", "org.scalatest.FreeSpec")))
@@ -39,6 +40,7 @@ lazy val server = Project("coed-server", file("server"))
 
 
 lazy val client = Project("coed-client", file("client"))
+  .enablePlugins(StartScripts)
   .settings(
     scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten,
     testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaTest, "-y", "org.scalatest.FreeSpec")))
