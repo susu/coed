@@ -12,8 +12,9 @@ object IpAddress {
     validateIp(toward).flatMap(to => {
       val output = s"ip route get $toward" !!
 
-      val ip = output.split(' ')(6)
-      validateIp(ip)
+      val words = output.split(' ')
+      val ips = words.map(validateIp(_)).collect {case i@Some(_) => i}
+      ips.last
     })
   }
 
