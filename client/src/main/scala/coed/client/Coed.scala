@@ -2,6 +2,9 @@ package coed.client
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.rogach.scallop.{ScallopConf, ScallopOption}
+import akka.actor.{ActorSystem, Props}
+import coed.common.IpAddress
+import coed.common.Protocol.Edit
 
 object Coed extends App {
 
@@ -15,14 +18,12 @@ object Coed extends App {
 
   val arguments = new Arguments(args)
 
-  val localAddresss: IpAddress = LocalIp.whatIsMyIp(arguments.serverIp()).getOrElse {
+  val localAddresss: IpAddress = IpAddress.whatIsMyIp(arguments.serverIp()).getOrElse {
     println(s"Could not determine local IP from given server IP: ${arguments.serverIp()}")
     sys.exit(42)
   }
 
   prepareAkkaRemote(localAddresss)
-
-  val cli: Cli = new Cli( c => println(c) )
 
   def prepareAkkaRemote(localIp: IpAddress) = {
     System.err.println(s"LocalIP: $localIp")
@@ -31,4 +32,11 @@ object Coed extends App {
        """)
    remoteConfig.withFallback(ConfigFactory.load)
   }
+
+  val actorSystem = ActorSystem("coed")
+
+  val server = actorSystem.actorOf(Props(new ServerActor("asd")))
+  val client = actorSystem.actorOf(Props(new ClientActor(server)))
+
+  val cli: Cli = new Cli( c => client ! Edit(c, 0) )
 }

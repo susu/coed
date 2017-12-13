@@ -11,9 +11,15 @@ class ClientActor(server: ActorRef) extends Actor {
   override def receive = {
     case e: Edit =>
       server ! e
-    case JoinSuccess(b, _) => buffer = Some(new StringBuf(b))
+    case JoinSuccess(b, _) =>
+      buffer = Some(new StringBuf(b))
+      println(getBufferText)
     case Sync(c, _) => buffer =
       buffer.map(oldBuffer => oldBuffer.applyCommand(c).getOrElse(oldBuffer))
-      println(s"Updated buffer: $buffer")
+      println(getBufferText)
+  }
+
+  private def getBufferText = {
+    buffer.map(_.render).getOrElse("")
   }
 }

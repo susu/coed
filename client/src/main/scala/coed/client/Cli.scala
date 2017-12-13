@@ -23,7 +23,7 @@ class Cli(send: Command => Unit) {
           println(helpText)
           loop(readLine)
 
-        case _ =>
+        case Some(Stop) => System.exit(0)
       }
 
     loop(Some(""))
