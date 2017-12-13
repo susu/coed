@@ -1,4 +1,4 @@
-package coed.client
+package coed.server
 
 import akka.actor.{Actor, ActorRef}
 import coed.common.Protocol.{Edit, Join, JoinSuccess, Sync}

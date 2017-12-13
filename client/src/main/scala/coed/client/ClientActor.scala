@@ -1,10 +1,10 @@
 package coed.client
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Actor, ActorSelection}
 import coed.common.Protocol.{Edit, Join, JoinSuccess, Sync}
 import coed.common.{Buffer, StringBuf}
 
-class ClientActor(server: ActorRef) extends Actor {
+class ClientActor(server: ActorSelection) extends Actor {
   server ! Join
 
   var buffer: Option[Buffer] = None

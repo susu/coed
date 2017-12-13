@@ -1,6 +1,6 @@
 package coed.server
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import coed.common.{AkkaConfigFactory, IpAddress}
 import org.rogach.scallop.{ScallopConf, ScallopOption}
 
@@ -20,4 +20,6 @@ object Server extends App {
 
   val config = AkkaConfigFactory.remoteConfigWithPort(localIp, 42000)
   val system = ActorSystem("Server", config)
+
+  val serverActor = system.actorOf(Props(new ServerActor("asd")), AkkaConfigFactory.WelcomingActorName)
 }
