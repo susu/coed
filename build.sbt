@@ -1,7 +1,12 @@
 import scala.sys.process.Process
 
-libraryDependencies += "org.rogach" %% "scallop" % "3.1.0"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+val commonDeps = Seq(
+  "com.typesafe.akka" %% "akka-actor" % "2.5.6",
+  "com.typesafe.akka" %% "akka-remote" % "2.5.6",
+  "com.typesafe" % "config" % "1.3.1",
+  "org.rogach" %% "scallop" % "3.1.0",
+  "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+)
 
 val warnings = Seq("dead-code", "inaccessible", "unused", "unused-import")
 
@@ -28,7 +33,7 @@ lazy val root = Project("coed-root", file("."))
 
 lazy val common = Project("coed-common", file("common"))
   .settings(scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten)
-  .settings(libraryDependencies+= "com.typesafe.akka" %% "akka-actor" % "2.5.6")
+  .settings(libraryDependencies ++= commonDeps)
 
 lazy val server = Project("coed-server", file("server"))
   .enablePlugins(StartScripts)
