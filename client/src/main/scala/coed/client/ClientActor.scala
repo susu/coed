@@ -12,6 +12,8 @@ class ClientActor(server: ActorRef) extends Actor {
     case e: Edit =>
       server ! e
     case JoinSuccess(b, _) => buffer = Some(new StringBuf(b))
-    case Sync(c, _) => buffer = buffer.map(oldBuffer => oldBuffer.applyCommand(c).getOrElse(oldBuffer))
+    case Sync(c, _) => buffer =
+      buffer.map(oldBuffer => oldBuffer.applyCommand(c).getOrElse(oldBuffer))
+      println(s"Updated buffer: $buffer")
   }
 }
