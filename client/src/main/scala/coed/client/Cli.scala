@@ -51,8 +51,8 @@ class Cli(send: Command => Unit) {
   case object Stop extends Action
 
   val helpText: String = """
-insert text at position: i <pos> <text>
-delete text at position: d <pos> <length>
-quit (you don't want to): q
-"""
+    insert text at position: i <pos> <text>
+    delete text at position: d <pos> <length>
+    quit (you don't want to): q
+  """
 }

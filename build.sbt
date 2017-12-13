@@ -1,6 +1,5 @@
 import scala.sys.process.Process
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.5.6"
 libraryDependencies += "org.rogach" %% "scallop" % "3.1.0"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
@@ -29,6 +28,7 @@ lazy val root = Project("coed-root", file("."))
 
 lazy val common = Project("coed-common", file("common"))
   .settings(scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten)
+  .settings(libraryDependencies+= "com.typesafe.akka" %% "akka-actor" % "2.5.6")
 
 lazy val server = Project("coed-server", file("server"))
   .enablePlugins(StartScripts)
