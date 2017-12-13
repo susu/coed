@@ -44,4 +44,5 @@ lazy val client = Project("coed-client", file("client"))
   .settings(
     scalacOptions := commonScalacOptions ++ Option(System.getenv().get("SCALA_OPTS")).map(_.split(" ")).toSeq.flatten,
     testOptions in Test ++= Seq(Tests.Argument(TestFrameworks.ScalaTest, "-y", "org.scalatest.FreeSpec")))
+  .settings(libraryDependencies+="jline" % "jline" % "2.14.2")
   .dependsOn(common % "test->test;compile->compile")

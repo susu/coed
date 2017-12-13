@@ -30,7 +30,7 @@ object StartScripts extends AutoPlugin {
     binaryFile.setExecutable(true)
   }
 
-  private def scriptContent(cls: String, javaopts: String, classpath: String) = s"""#!/bin/bash
+  private def scriptContent(cls: String, javaopts: String, classpath: String) = s"""#!/usr/bin/env bash
                                  |java \\
                                  |    ${javaopts} \\
                                  |    $$JAVA_OPTS \\
