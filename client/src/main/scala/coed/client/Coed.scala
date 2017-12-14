@@ -30,7 +30,9 @@ object Coed extends App {
   val actorPath = AkkaConfigFactory.getWelcomeActorPath(arguments.serverIp(), 42000)
   val welcomeActor: ActorSelection = actorSystem.actorSelection(actorPath)
 
-  val client = actorSystem.actorOf(Props(new ClientActor(welcomeActor)))
+  val client = actorSystem.actorOf(Props(new ClientActor(
+    welcomeActor,
+    new SimpleBufferUpdater())))
 
   val cli: Cli = new Cli( c => client ! Edit(c, 0) )
 }

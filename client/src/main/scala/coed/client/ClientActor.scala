@@ -2,24 +2,13 @@ package coed.client
 
 import akka.actor.{Actor, ActorSelection}
 import coed.common.Protocol.{Edit, Join, JoinSuccess, Sync}
-import coed.common.{Buffer, StringBuf}
 
-class ClientActor(server: ActorSelection) extends Actor {
+class ClientActor(server: ActorSelection, bufferUpdater: BufferUpdater) extends Actor {
   server ! Join
 
-  var buffer: Option[Buffer] = None
   override def receive = {
-    case e: Edit =>
-      server ! e
-    case JoinSuccess(b, _) =>
-      buffer = Some(new StringBuf(b))
-      println(getBufferText)
-    case Sync(c, _) => buffer =
-      buffer.map(oldBuffer => oldBuffer.applyCommand(c).getOrElse(oldBuffer))
-      println(getBufferText)
-  }
-
-  private def getBufferText = {
-    buffer.map(_.render).getOrElse("")
+    case e: Edit => server ! e
+    case JoinSuccess(b, r) => bufferUpdater.newBuffer(b, r)
+    case Sync(c, r) => bufferUpdater.syncBuffer(c, r)
   }
 }
