@@ -31,10 +31,14 @@ object StartScripts extends AutoPlugin {
   }
 
   private def scriptContent(cls: String, javaopts: String, classpath: String) = s"""#!/usr/bin/env bash
+                                 |stty_save=$$(stty -g)
+                                 |stty -echo
+                                 |stty raw
                                  |java \\
                                  |    ${javaopts} \\
                                  |    $$JAVA_OPTS \\
                                  |    -classpath $classpath \\
                                  |    $cls "$$@"
+                                 |stty $$stty_save
                                  |""".stripMargin
 }

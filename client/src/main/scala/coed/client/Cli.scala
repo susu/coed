@@ -1,47 +1,66 @@
 package coed.client
 
-import jline.console.ConsoleReader
 import scala.annotation.tailrec
 import coed.common.{Insert, Delete, Command}
 import scala.util.Try
 
+case class Cursor(val x: Int, val y: Int) {
+  def up: Cursor = this.copy(y=y-1)
+  def down: Cursor = this.copy(y=y+1)
+  def left: Cursor = this.copy(x=x-1)
+  def right: Cursor = this.copy(x=x+1)
+}
+
 class Cli(send: Command => Unit) {
-  val reader = new ConsoleReader()
-  reader.setPrompt("kutyus > ")
+  var cursor: Cursor = Cursor(0, 0)
+
   new Thread(() => {
 
-    def readLine = Option(reader.readLine)
+    def readChar: Char = System.in.read.toChar
 
     @tailrec
-    def loop(line: Option[String]): Unit =
-      line.flatMap(handleCommand) match {
-
+    def loop(key: Char): Unit = {
+      handleKey(key) match {
         case Some(Continue) =>
-          loop(readLine)
+          loop(readChar)
 
         case None =>
-          println(helpText)
-          loop(readLine)
+          println("error")
+          loop(readChar)
 
         case Some(Stop) => System.exit(0)
       }
-
-    loop(Some(""))
+    }
+    loop(' ')
   }).start()
 
-  def handleCommand(line: String): Option[Action] = Try {
-    val separator: Char = ' '
-    val args: List[String] = line.split(separator).toList
-    args match {
-      case "i"::pos::text => {
-        send(Insert(text.mkString(separator.toString), Integer.parseInt(pos)))
+  def handleKey(key: Char): Option[Action] = Try {
+    key match {
+      case 'q' => Some(Stop)
+      case 'i' => {
+        send(Insert("kutyus", cursor.x-1))
         Some(Continue)
       }
-      case "d"::pos::length::Nil => {
-        send(Delete(Integer.parseInt(pos), Integer.parseInt(length)))
+      case 'd' => {
+        send(Delete(cursor.x-1, 1))
         Some(Continue)
       }
-      case "q"::_ => Some(Stop)
+      case 'h' =>
+        cursor = cursor.left
+        print(Ansi.moveCursorCode(cursor.x, cursor.y))
+        Some(Continue)
+      case 'j' =>
+        cursor = cursor.down
+        print(Ansi.moveCursorCode(cursor.x, cursor.y))
+        Some(Continue)
+      case 'k' =>
+        cursor = cursor.up
+        print(Ansi.moveCursorCode(cursor.x, cursor.y))
+        Some(Continue)
+      case 'l' =>
+        cursor = cursor.right
+        print(Ansi.moveCursorCode(cursor.x, cursor.y))
+        Some(Continue)
       case _ => None
     }
   }.getOrElse(None)
@@ -49,10 +68,4 @@ class Cli(send: Command => Unit) {
   sealed trait Action
   case object Continue extends Action
   case object Stop extends Action
-
-  val helpText: String = """
-    insert text at position: i <pos> <text>
-    delete text at position: d <pos> <length>
-    quit (you don't want to): q
-  """
 }

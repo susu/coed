@@ -10,7 +10,12 @@ trait BufferUpdater {
 class SimpleBufferUpdater extends BufferUpdater {
   private var buffer: Option[Buffer] = None
 
-  override def newBuffer(text: String, revision: Long): Unit = buffer = Some(new StringBuf(text))
+  println(Ansi.clearScreenCode)
+
+  override def newBuffer(text: String, revision: Long): Unit = {
+    buffer = Some(new StringBuf(text))
+    printBuffer
+  }
 
   override def syncBuffer(command: Command, revision: Long): Unit = {
     buffer =
@@ -19,10 +24,8 @@ class SimpleBufferUpdater extends BufferUpdater {
   }
 
   private def printBuffer(): Unit = {
-    println(clearScreenCode ++ renderBuffer)
+    println(Ansi.clearScreenCode ++ renderBuffer)
     println("-----------------------------")
   }
   private def renderBuffer: String = buffer.map(_.render).getOrElse("")
-  private val clearScreenCode: String = moveCursorCode(0, 0) ++ "\u001B[2J"
-  private def moveCursorCode(x: Int, y: Int): String = s"\u001B[${y};${x}H"
 }
