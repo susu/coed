@@ -9,7 +9,7 @@ class WelcomingActor extends Actor {
 
   val clients: mutable.HashSet[ActorRef] = new mutable.HashSet[ActorRef]()
 
-  val serverActor = context.actorOf(Props(new ServerActor("asd")))
+  val serverActor = context.actorOf(Props(new BufferActor("asd")))
 
   override def receive = {
     case Join =>

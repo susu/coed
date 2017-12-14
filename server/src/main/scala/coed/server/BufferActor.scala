@@ -4,7 +4,7 @@ import akka.actor.Actor
 import coed.common.Protocol.{Edit, Join, JoinSuccess, Sync}
 import coed.common.{Buffer, StringBuf}
 
-class ServerActor(text: String) extends Actor {
+class BufferActor(text: String) extends Actor {
 
   var buffer: Buffer = new StringBuf(text)
 
