@@ -5,10 +5,10 @@ import coed.common.{Insert, Delete, Command}
 import scala.util.Try
 
 case class Cursor(val x: Int, val y: Int) {
-  def up: Cursor = this.copy(y=y-1)
-  def down: Cursor = this.copy(y=y+1)
-  def left: Cursor = this.copy(x=x-1)
-  def right: Cursor = this.copy(x=x+1)
+  def up: Cursor = this.copy(y=Math.max(y-1, 0))
+  def down: Cursor = this.copy(y=Math.min(y+1, 25))
+  def left: Cursor = this.copy(x=Math.max(x-1, 0))
+  def right: Cursor = this.copy(x=Math.min(x+1, 80))
 }
 
 class Cli(send: Command => Unit) {
@@ -41,7 +41,7 @@ class Cli(send: Command => Unit) {
         send(Insert("kutyus", cursor.x-1))
         Some(Continue)
       }
-      case 'd' => {
+      case 'x' => {
         send(Delete(cursor.x-1, 1))
         Some(Continue)
       }
