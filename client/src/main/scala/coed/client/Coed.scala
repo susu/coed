@@ -9,6 +9,7 @@ object Coed extends App {
 
   class Arguments(arguments: Seq[String]) extends ScallopConf(arguments) {
     val serverIp: ScallopOption[String] = opt[String](short = 's', descr = "IP of the server", required = true)
+    val localIp: ScallopOption[String] = opt[String](short = 'l', descr = "visible IP of the client", required = false)
 
     verify()
   }
@@ -17,9 +18,11 @@ object Coed extends App {
 
   val arguments = new Arguments(args)
 
-  val localAddress: IpAddress = IpAddress.whatIsMyIp(arguments.serverIp()).getOrElse {
-    println(s"Could not determine local IP from given server IP: ${arguments.serverIp()}")
-    sys.exit(42)
+  val localAddress: IpAddress = arguments.localIp.toOption.flatMap(IpAddress.validateIp(_)).getOrElse {
+    IpAddress.whatIsMyIp(arguments.serverIp()).getOrElse {
+      println(s"Could not determine local IP from given server IP: ${arguments.serverIp()}")
+      sys.exit(42)
+    }
   }
 
   val actorSystem = ActorSystem("coed", AkkaConfigFactory.remoteConfig(localAddress))
