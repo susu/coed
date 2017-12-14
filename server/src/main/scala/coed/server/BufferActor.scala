@@ -1,5 +1,8 @@
 package coed.server
 
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Paths}
+
 import akka.actor.Actor
 import coed.common.Protocol._
 import coed.common.{Buffer, StringBuf}
@@ -30,5 +33,8 @@ class BufferActor(filename: String) extends Actor {
     case Edit(bid, c, _) =>
       buffer = buffer.applyCommand(c).getOrElse(buffer)
       context.parent ! Sync(bid, c, 0)
+
+    case PersistBuffer =>
+      Files.write(Paths.get(filename), buffer.render.getBytes(StandardCharsets.UTF_8))
   }
 }

@@ -5,6 +5,9 @@ import coed.common.Protocol._
 
 import scala.collection.mutable
 
+
+case object PersistBuffer
+
 class WelcomingActor extends Actor {
   type BufferActorRef = ActorRef
   type ClientActorRef = ActorRef
@@ -27,8 +30,13 @@ class WelcomingActor extends Actor {
       handleSyncMessage(s)
 
     case Terminated(client) =>
-      buffers.values.foreach { case (_, clientSet) =>
+      buffers.values.foreach { case (bufferActor, clientSet) =>
         clientSet.remove(client)
+
+        if (clientSet.isEmpty)
+        {
+          bufferActor ! PersistBuffer
+        }
       }
   }
 
