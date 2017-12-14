@@ -1,7 +1,7 @@
 package coed.server
 
 import akka.actor.Actor
-import coed.common.Protocol.{Edit, Join, JoinSuccess, Sync}
+import coed.common.Protocol._
 import coed.common.{Buffer, StringBuf}
 
 class BufferActor(text: String) extends Actor {
@@ -9,10 +9,11 @@ class BufferActor(text: String) extends Actor {
   var buffer: Buffer = new StringBuf(text)
 
   override def receive = {
-    case Join =>
-      sender() ! JoinSuccess(buffer.render, 0)
-    case Edit(c, _) =>
+    case Open(_) =>
+      sender() ! OpenSuccess(buffer.render, 0)
+
+    case Edit(bid, c, _) =>
       buffer = buffer.applyCommand(c).getOrElse(buffer)
-      context.parent ! Sync(c, 0)
+      context.parent ! Sync(bid, c, 0)
   }
 }

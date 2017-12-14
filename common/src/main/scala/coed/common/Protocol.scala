@@ -1,9 +1,15 @@
 package coed.common
 
 object Protocol {
-  case object Join
-  case class JoinSuccess(buffer: String, rev: Long)
+  type BufferId = String
 
-  case class Edit(c: Command, rev: Long)
-  case class Sync(c: Command, rev: Long)
+  case object Join
+  case class JoinSuccess(bufferList: List[BufferId])
+
+  case class Open(bufferId: BufferId)
+  case class OpenSuccess(buffer: String, rev: Long)
+
+  case class Edit(bufferId: BufferId, command: Command, rev: Long) //clientactor -> wactor
+
+  case class Sync(bufferId: BufferId, command: Command, rev: Long) //bufferactor -> wactor -> clientactor
 }

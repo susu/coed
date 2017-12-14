@@ -1,8 +1,7 @@
 package coed.client
 
 import akka.actor.{ActorSelection, ActorSystem, Props}
-import coed.common.Protocol.Edit
-import coed.common.{AkkaConfigFactory, IpAddress}
+import coed.common.{AkkaConfigFactory, CommandMsg, IpAddress}
 import org.rogach.scallop.{ScallopConf, ScallopOption}
 
 object Coed extends App {
@@ -34,5 +33,5 @@ object Coed extends App {
     welcomeActor,
     new SimpleBufferUpdater())))
 
-  val cli: Cli = new Cli( c => client ! Edit(c, 0) )
+  val cli: Cli = new Cli( command => client ! CommandMsg(command) )
 }

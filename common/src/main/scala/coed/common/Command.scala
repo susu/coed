@@ -7,3 +7,5 @@ final case class Delete(position: Command.Position, length: Int) extends Command
 object Command {
   type Position = Int
 }
+
+case class CommandMsg(cmd: Command)
