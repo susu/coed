@@ -1,70 +1,49 @@
 package coed.client
 
+import coed.client.Cli._
+
 import scala.annotation.tailrec
-import coed.common.{Insert, Delete, Command}
-import scala.util.Try
 
-case class Cursor(val x: Int, val y: Int) {
-  def up: Cursor = this.copy(y=Math.max(y-1, 0))
-  def down: Cursor = this.copy(y=Math.min(y+1, 25))
-  def left: Cursor = this.copy(x=Math.max(x-1, 0))
-  def right: Cursor = this.copy(x=Math.min(x+1, 80))
-}
+class Cli(send: KeyPress => Unit) {
 
-class Cli(send: Command => Unit) {
-  var cursor: Cursor = Cursor(1, 1)
+  val thread = new Thread(() => {
 
-  new Thread(() => {
-
-    def readChar: Char = System.in.read.toChar
+    def readKey: Int = System.in.read
 
     @tailrec
-    def loop(key: Char): Unit = {
+    def loop(key: Int): Unit = {
       handleKey(key) match {
         case Some(Continue) =>
-          loop(readChar)
+          loop(readKey)
 
         case None =>
           println("error")
-          loop(readChar)
+          loop(readKey)
 
         case Some(Stop) => System.exit(0)
       }
     }
+
     loop(' ')
-  }).start()
+  })
+  thread.setDaemon(true)
+  thread.start()
 
-  def handleKey(key: Char): Option[Action] = Try {
-    key match {
-      case 'q' => Some(Stop)
-      case 'i' => {
-        send(Insert("kutyus", cursor.x-1))
-        Some(Continue)
-      }
-      case 'x' => {
-        send(Delete(cursor.x-1, 1))
-        Some(Continue)
-      }
-      case 'h' =>
-        cursor = cursor.left
-        print(Ansi.moveCursorCode(cursor.x, cursor.y))
-        Some(Continue)
-      case 'j' =>
-        cursor = cursor.down
-        print(Ansi.moveCursorCode(cursor.x, cursor.y))
-        Some(Continue)
-      case 'k' =>
-        cursor = cursor.up
-        print(Ansi.moveCursorCode(cursor.x, cursor.y))
-        Some(Continue)
-      case 'l' =>
-        cursor = cursor.right
-        print(Ansi.moveCursorCode(cursor.x, cursor.y))
-        Some(Continue)
-      case _ => None
+  def handleKey(key: Int): Option[Action] = {
+    if (32 <= key && key <= 126) {
+      send(Character(key.toChar))
+    } else if (key == 27) {
+      send(Escape)
+    } else if (key == 10 || key == 13) {
+      send(Enter)
+    } else {
+      Console.err.println(s"Unknown input: $key")
     }
-  }.getOrElse(None)
+    Some(Continue)
+  }
+}
 
+object Cli {
   sealed trait Action
   case object Continue extends Action
   case object Stop extends Action
