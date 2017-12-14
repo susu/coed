@@ -21,5 +21,5 @@ object Server extends App {
   val config = AkkaConfigFactory.remoteConfigWithPort(localIp, 42000)
   val system = ActorSystem(AkkaConfigFactory.ServerActorSystemName, config)
 
-  val serverActor = system.actorOf(Props(new ServerActor("asd")), AkkaConfigFactory.WelcomingActorName)
+  val welcomingActor = system.actorOf(Props(new WelcomingActor), AkkaConfigFactory.WelcomingActorName)
 }
