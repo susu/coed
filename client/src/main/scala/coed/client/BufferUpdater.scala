@@ -15,8 +15,14 @@ class SimpleBufferUpdater extends BufferUpdater {
   override def syncBuffer(command: Command, revision: Long): Unit = {
     buffer =
       buffer.map(oldBuffer => oldBuffer.applyCommand(command).getOrElse(oldBuffer))
-      println(render)
+      printBuffer
   }
 
-  private def render: String = buffer.map(_.render).getOrElse("")
+  private def printBuffer(): Unit = {
+    println(clearScreenCode ++ renderBuffer)
+    println("-----------------------------")
+  }
+  private def renderBuffer: String = buffer.map(_.render).getOrElse("")
+  private val clearScreenCode: String = moveCursorCode(0, 0) ++ "\u001B[2J"
+  private def moveCursorCode(x: Int, y: Int): String = s"\u001B[${y};${x}H"
 }
