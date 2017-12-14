@@ -12,7 +12,7 @@ case class Cursor(val x: Int, val y: Int) {
 }
 
 class Cli(send: Command => Unit) {
-  var cursor: Cursor = Cursor(0, 0)
+  var cursor: Cursor = Cursor(1, 1)
 
   new Thread(() => {
 
