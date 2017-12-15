@@ -20,9 +20,7 @@ class SimpleRenderer extends Renderer {
   override def cursorPosition: Int = {
     val x: Int = frame.bufferOffset._1 + frame.cursorPosition.at
     val y: Int = frame.bufferOffset._2 + frame.cursorPosition.line
-    buffer.render.lines
-
-    x+y
+    buffer.render.lines.take(y - 1).toVector.map(_.length + 1).sum+x
   }
 
   override def moveLeft(): Unit = {
