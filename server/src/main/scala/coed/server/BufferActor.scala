@@ -11,8 +11,10 @@ import coed.server.InternalMessage.PersistBuffer
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
-class BufferActor(filename: String) extends Actor {
 
+class BufferActor(var filename: String) extends Actor {
+
+  filename = "workspace/" + filename
   var buffer: Buffer = new StringBuf(loadBuffer)
 
   private def loadBuffer: String = {
