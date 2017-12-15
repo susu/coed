@@ -56,6 +56,9 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
     case Character('q') =>
       System.exit(0)
 
+    case Character('w') =>
+      welcomeActor ! Persist(currentBufferId.get)
+
     case kp => Console.err.println(s"Unhandled input: $kp")
   }
 

@@ -12,4 +12,6 @@ object Protocol {
   case class Edit(bufferId: BufferId, command: Command, rev: Long) //clientactor -> wactor
 
   case class Sync(bufferId: BufferId, command: Command, rev: Long) //bufferactor -> wactor -> clientactor
+
+  case class Persist(bufferId: BufferId)
 }

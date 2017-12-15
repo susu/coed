@@ -2,11 +2,10 @@ package coed.server
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 import coed.common.Protocol._
+import coed.server.InternalMessage.PersistBuffer
 
 import scala.collection.mutable
 
-
-case object PersistBuffer
 
 class WelcomingActor extends Actor {
   type BufferActorRef = ActorRef
@@ -28,6 +27,9 @@ class WelcomingActor extends Actor {
 
     case s: Sync =>
       handleSyncMessage(s)
+
+    case Persist(bid) =>
+      buffers(bid)._1 ! PersistBuffer
 
     case Terminated(client) =>
       buffers.values.foreach { case (bufferActor, clientSet) =>

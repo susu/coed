@@ -6,6 +6,7 @@ import java.nio.file.{Files, Paths}
 import akka.actor.Actor
 import coed.common.Protocol._
 import coed.common.{Buffer, StringBuf}
+import coed.server.InternalMessage.PersistBuffer
 
 import scala.io.Source
 import scala.util.{Failure, Success, Try}
