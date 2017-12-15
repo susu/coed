@@ -47,9 +47,11 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, rende
   def handleKeyPressInInsertMode(keypress: KeyPress): Unit = keypress match {
     case Character(c) =>
       welcomeActor.tell(Edit(currentBufferId.get, Insert(c.toString, 0), 0), clientActor)
+      renderer.moveRight
 
     case Enter =>
       welcomeActor.tell(Edit(currentBufferId.get, Insert("\n", 0), 0), clientActor)
+      renderer.moveDown
 
     case Escape =>
       clientActor ! ChangeToNormalMode
