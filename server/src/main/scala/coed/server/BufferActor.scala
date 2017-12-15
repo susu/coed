@@ -8,7 +8,6 @@ import coed.server.persistence.BufferFile
 
 
 class BufferActor(var filename: String, val workspaceDir: String) extends Actor {
-  filename = workspaceDir + '/' + filename
   val bufferFile: BufferFile = new BufferFile(workspaceDir, filename)
   var buffer: Buffer = new StringBuf(bufferFile.load)
 
