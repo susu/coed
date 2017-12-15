@@ -1,5 +1,6 @@
 package coed.server
 
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 
@@ -13,8 +14,8 @@ import scala.util.{Failure, Success, Try}
 
 
 class BufferActor(var filename: String) extends Actor {
-
-  filename = "workspace/" + filename
+  val workspaceDir = "workspace"
+  filename = workspaceDir + '/' + filename
   var buffer: Buffer = new StringBuf(loadBuffer)
 
   private def loadBuffer: String = {
@@ -38,6 +39,19 @@ class BufferActor(var filename: String) extends Actor {
       context.parent ! Sync(bid, c, 0)
 
     case PersistBuffer =>
-      Files.write(Paths.get(filename), buffer.render.getBytes(StandardCharsets.UTF_8))
+      if (!workspaceExists) createWorkspace
+      persistBuffer
+  }
+
+  private def workspaceExists = {
+    Files.exists(Paths.get(workspaceDir))
+  }
+
+  private def createWorkspace = {
+    new File(workspaceDir).mkdirs()
+  }
+
+  private def persistBuffer = {
+    Files.write(Paths.get(filename), buffer.render.getBytes(StandardCharsets.UTF_8))
   }
 }
