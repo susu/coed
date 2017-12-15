@@ -14,11 +14,15 @@ trait Renderer {
 }
 
 class SimpleRenderer extends Renderer {
-  private var buffer: Option[Buffer] = None
+  private var buffer: Buffer = new StringBuf("")
   private var frame: Frame = Frame("")
 
   override def cursorPosition: Int = {
-    0
+    val x: Int = frame.bufferOffset._1 + frame.cursorPosition.at
+    val y: Int = frame.bufferOffset._2 + frame.cursorPosition.line
+    buffer.render.lines
+
+    x+y
   }
 
   override def moveLeft(): Unit = {
@@ -39,16 +43,15 @@ class SimpleRenderer extends Renderer {
   }
 
   override def newBuffer(text: String, revision: Long): Unit = {
-    buffer = Some(new StringBuf(text))
-    frame = Frame(bufferText = buffer.get.render)
+    buffer = new StringBuf(text)
+    frame = Frame(bufferText = buffer.render)
     printFrame()
   }
 
   override def syncBuffer(command: Command, revision: Long): Unit = {
-    buffer =
-      buffer.map(oldBuffer => oldBuffer.applyCommand(command).getOrElse(oldBuffer))
-      frame = Frame(bufferText = buffer.get.render)
-      printFrame()
+    buffer = buffer.applyCommand(command).getOrElse(buffer)
+    frame = Frame(bufferText = buffer.render)
+    printFrame()
   }
 
   private def printFrame(): Unit = {
