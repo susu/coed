@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorSelection}
 import coed.client.InternalMessage.{ChangeToInsertMode, ChangeToNormalMode}
 import coed.common.Protocol._
 
-class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) extends Actor {
+class ClientActor(welcomeActor: ActorSelection, renderer: Renderer) extends Actor {
   welcomeActor ! Join
 
   private val keypressHandler: KeypressHandler = new KeypressHandler(self, welcomeActor)
@@ -20,7 +20,7 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
       keypressHandler.handleKeyPressInChooseBufferMode(bufferList, keypress)
 
     case OpenSuccess(buffer, rev) =>
-      bufferUpdater.newBuffer(buffer, rev)
+      renderer.newBuffer(buffer, rev)
       context.become(normalModeBehavior.orElse(handleSync))
   }
 
@@ -39,7 +39,7 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
   }
 
   private def handleSync: Receive = {
-    case Sync(_, cmd, r) => bufferUpdater.syncBuffer(cmd, r)
+    case Sync(_, cmd, r) => renderer.syncBuffer(cmd, r)
   }
 
   private def printBufferList(bufferList: List[BufferId]) = {

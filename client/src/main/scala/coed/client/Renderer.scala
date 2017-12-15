@@ -2,12 +2,12 @@ package coed.client
 
 import coed.common.{Buffer, Command, Frame, StringBuf}
 
-trait BufferUpdater {
+trait Renderer {
   def newBuffer(text: String, revision: Long): Unit
   def syncBuffer(command: Command, revision: Long): Unit
 }
 
-class SimpleBufferUpdater extends BufferUpdater {
+class SimpleRenderer extends Renderer {
   private var buffer: Option[Buffer] = None
   private var frame: Option[Frame] = None
 
