@@ -1,6 +1,6 @@
 package coed.client
 
-import coed.common.{Buffer, StringBuf, Command}
+import coed.common.{Buffer, Command, Frame, StringBuf}
 
 trait BufferUpdater {
   def newBuffer(text: String, revision: Long): Unit
@@ -9,24 +9,24 @@ trait BufferUpdater {
 
 class SimpleBufferUpdater extends BufferUpdater {
   private var buffer: Option[Buffer] = None
+  private var frame: Option[Frame] = None
 
   override def newBuffer(text: String, revision: Long): Unit = {
     buffer = Some(new StringBuf(text))
-    printBuffer()
+    frame = Some(Frame(bufferText = buffer.get.render))
+    printFrame()
   }
 
   override def syncBuffer(command: Command, revision: Long): Unit = {
     buffer =
       buffer.map(oldBuffer => oldBuffer.applyCommand(command).getOrElse(oldBuffer))
-      printBuffer()
+      frame = Some(Frame(bufferText = buffer.get.render))
+      printFrame()
   }
 
-  private def printBuffer(): Unit = {
-    println(clearScreenCode + renderBuffer)
-    println("-----------------------------")
+  private def printFrame(): Unit = {
+    print(Ansi.clearScreenCode)
+    frame.foreach(frame => frame.visibleLines.foreach { line => println(line + "\r") })
   }
-  private def renderBuffer: String = buffer.map(_.render).getOrElse("")
-
-  private val clearScreenCode: String = moveCursorCode(0, 0) ++ "\u001B[2J"
-  private def moveCursorCode(x: Int, y: Int): String = s"\u001B[${y};${x}H"
 }
+
