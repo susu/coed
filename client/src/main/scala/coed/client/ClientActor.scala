@@ -11,16 +11,26 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
 
   override def receive: Receive = {
     case JoinSuccess(bufferList) =>
-      currentBufferId = Some(chooseBuffer(bufferList))
-      welcomeActor ! Open(currentBufferId.get)
+      printBufferList(bufferList)
+      context.become(chooseBufferModeBehavior(bufferList))
+  }
+
+  private def handleSync: Receive = {
+    case Sync(_, cmd, r) => bufferUpdater.syncBuffer(cmd, r)
+  }
+
+  private def chooseBufferModeBehavior(bufferList: List[BufferId]): Receive = {
+    case KeyPressMessage(keypress) =>
+      handleKeyPressInChooseBufferMode(bufferList, keypress)
 
     case OpenSuccess(buffer, rev) =>
       bufferUpdater.newBuffer(buffer, rev)
       context.become(normalModeBehavior.orElse(handleSync))
   }
 
-  private def handleSync: Receive = {
-    case Sync(_, cmd, r) => bufferUpdater.syncBuffer(cmd, r)
+  private def printBufferList(bufferList: List[BufferId]) = {
+    println("Please choose a file to edit")
+    bufferList.foreach(println)
   }
 
   private def insertModeBehavior: Receive = {
@@ -62,6 +72,18 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
     case kp => Console.err.println(s"Unhandled input: $kp")
   }
 
+  private def handleKeyPressInChooseBufferMode(bufferList: List[BufferId], keypress: KeyPress): Unit = keypress match {
+    case Character(c) if c.isDigit =>
+      val number = c.asDigit
+      if (number > 0 && number <= bufferList.length) {
+        currentBufferId = Some(bufferList(number-1))
+        welcomeActor ! Open(currentBufferId.get)
+      }
+      else Console.err.println(s"Not a valid index $number")
 
-  private def chooseBuffer(ids: List[BufferId]): BufferId = ids.head //TODO proper choosing
+    case Character('q') =>
+      System.exit(0)
+
+    case kp => Console.err.println(s"Unhandled input: $kp")
+  }
 }

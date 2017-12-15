@@ -17,7 +17,7 @@ class WelcomingActor extends Actor {
     case Join =>
       context.watch(sender())
       //sender() ! JoinSuccess(buffers.keys.toList)
-      sender() ! JoinSuccess(List("buffer1"))
+      sender() ! JoinSuccess(List("buffer1", "buffer2", "buffer3"))
 
     case o: Open =>
       handleOpenMessage(o)
