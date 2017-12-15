@@ -5,7 +5,7 @@ import coed.client.InternalMessage.{ChangeToInsertMode, ChangeToNormalMode}
 import coed.common.{Delete, Insert}
 import coed.common.Protocol.{BufferId, Edit, Open, Persist}
 
-class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection) {
+class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, renderer: Renderer) {
   private var currentBufferId: Option[BufferId] = None
 
   def handleKeyPressInChooseBufferMode(bufferList: List[BufferId], keypress: KeyPress): Unit = keypress match {
@@ -24,6 +24,11 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection) {
   }
 
   def handleKeyPressInNormalMode(keyPress: KeyPress): Unit = keyPress match {
+    case Character('h') => renderer.moveLeft
+    case Character('j') => renderer.moveDown
+    case Character('k') => renderer.moveUp
+    case Character('l') => renderer.moveRight
+
     case Character('i') =>
       clientActor ! ChangeToInsertMode
 

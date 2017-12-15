@@ -5,11 +5,20 @@ import coed.common.{Buffer, Command, Frame, StringBuf}
 trait Renderer {
   def newBuffer(text: String, revision: Long): Unit
   def syncBuffer(command: Command, revision: Long): Unit
+  def moveLeft(): Unit
+  def moveRight(): Unit
+  def moveUp(): Unit
+  def moveDown(): Unit
 }
 
 class SimpleRenderer extends Renderer {
   private var buffer: Option[Buffer] = None
   private var frame: Option[Frame] = None
+
+  override def moveLeft(): Unit = frame.foreach(_.moveCursorUp)
+  override def moveRight(): Unit = frame.foreach(_.moveCursorUp)
+  override def moveUp(): Unit = frame.foreach(_.moveCursorUp)
+  override def moveDown(): Unit = frame.foreach(_.moveCursorUp)
 
   override def newBuffer(text: String, revision: Long): Unit = {
     buffer = Some(new StringBuf(text))

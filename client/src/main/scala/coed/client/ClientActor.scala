@@ -7,7 +7,7 @@ import coed.common.Protocol._
 class ClientActor(welcomeActor: ActorSelection, renderer: Renderer) extends Actor {
   welcomeActor ! Join
 
-  private val keypressHandler: KeypressHandler = new KeypressHandler(self, welcomeActor)
+  private val keypressHandler: KeypressHandler = new KeypressHandler(self, welcomeActor, renderer)
 
   override def receive: Receive = {
     case JoinSuccess(bufferList) =>
