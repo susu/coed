@@ -1,10 +1,9 @@
 package coed.server
 
-import java.io.File
-
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 import coed.common.Protocol._
 import coed.server.InternalMessage.PersistBuffer
+import coed.server.persistence.Workspace
 
 import scala.collection.mutable
 
@@ -20,7 +19,7 @@ class WelcomingActor extends Actor {
   override def receive = {
     case Join =>
       context.watch(sender())
-      sender() ! JoinSuccess(listBuffers.toList)
+      sender() ! JoinSuccess(Workspace.listBuffers(workspace).toList)
 
     case o: Open =>
       handleOpenMessage(o)
@@ -43,16 +42,6 @@ class WelcomingActor extends Actor {
           bufferActor ! PersistBuffer
         }
       }
-  }
-
-  private def listBuffers: Array[String] = {
-    val workspaceHandle = new File(workspace)
-    if (workspaceHandle.exists() && workspaceHandle.isDirectory) {
-      workspaceHandle.listFiles().map(f => f.getName) ++ Array("buffer" + workspaceHandle.listFiles().length)
-    }
-    else {
-      Array("buffer0")
-    }
   }
 
   private def handleOpenMessage(openMsg: Open): Unit = {
