@@ -31,7 +31,7 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
   private def printBufferList(bufferList: List[BufferId]) = {
     println("Please choose a file to edit")
     bufferList.zipWithIndex.foreach{
-      case (i, bid) =>
+      case (bid, i) =>
         println(s"${i + 1}: $bid")
     }
   }
