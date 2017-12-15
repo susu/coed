@@ -30,12 +30,17 @@ object StartScripts extends AutoPlugin {
     binaryFile.setExecutable(true)
   }
 
+  private def getRawModeSnippet(cls: String): String = if (cls.endsWith("Server")) {
+    ""
+  } else {
+    "stty -echo raw"
+  }
+
   private def scriptContent(cls: String, javaopts: String, classpath: String) = s"""#!/usr/bin/env bash
                                  |stty_save=$$(stty -g)
-                                 |stty -echo
-                                 |stty raw
+                                 |${getRawModeSnippet(cls)}
                                  |java \\
-                                 |    ${javaopts} \\
+                                 |    $javaopts \\
                                  |    $$JAVA_OPTS \\
                                  |    -classpath $classpath \\
                                  |    $cls "$$@"
