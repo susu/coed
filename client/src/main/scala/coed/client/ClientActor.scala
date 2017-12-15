@@ -30,7 +30,10 @@ class ClientActor(welcomeActor: ActorSelection, bufferUpdater: BufferUpdater) ex
 
   private def printBufferList(bufferList: List[BufferId]) = {
     println("Please choose a file to edit")
-    bufferList.foreach(println)
+    bufferList.zipWithIndex.foreach{
+      case (i, bid) =>
+        println(s"${i + 1}: $bid")
+    }
   }
 
   private def insertModeBehavior: Receive = {
