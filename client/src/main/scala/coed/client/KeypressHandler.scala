@@ -49,7 +49,7 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, rende
       welcomeActor.tell(Edit(currentBufferId.get, Insert(c.toString, 0), 0), clientActor)
 
     case Enter =>
-      welcomeActor.tell(Edit(currentBufferId.get, Insert("\n\r", 0), 0), clientActor)
+      welcomeActor.tell(Edit(currentBufferId.get, Insert("\n", 0), 0), clientActor)
 
     case Escape =>
       clientActor ! ChangeToNormalMode
