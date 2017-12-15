@@ -12,6 +12,11 @@ case class Frame(bufferText: String,
 
   val visibleLines: Seq[String] = (1 to frameHeight).map { calculateVisibleLine(_) }
 
+  def moveCursorUp: Frame = ???
+  def moveCursorDown: Frame = ???
+  def moveCursorLeft: Frame = ???
+  def moveCursorRight: Frame = ???
+
   private def calculateVisibleLine(lineIndexInFrame: Int): String = {
     val fullLineFromBuffer = translateBufferLineToFrameLine(lineIndexInFrame)
     visiblePartFromLine(fullLineFromBuffer)
