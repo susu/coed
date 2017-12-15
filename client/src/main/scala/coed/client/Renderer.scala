@@ -10,6 +10,8 @@ trait Renderer {
   def moveUp(): Unit
   def moveDown(): Unit
 
+  def moveToLineStart(): Unit
+
   def cursorPosition: Int
 }
 
@@ -18,8 +20,8 @@ class SimpleRenderer extends Renderer {
   private var frame: Frame = Frame("")
 
   override def cursorPosition: Int = {
-    val x: Int = frame.bufferOffset._1 + frame.cursorPosition.at
-    val y: Int = frame.bufferOffset._2 + frame.cursorPosition.line
+    val x: Int = frame.bufferOffset._1 + frame.cursorPosition.at - 1
+    val y: Int = (frame.bufferOffset._2 - 1) + frame.cursorPosition.line
     coordinateToPosition(x, y)
   }
 
@@ -37,6 +39,12 @@ class SimpleRenderer extends Renderer {
   }
   override def moveDown(): Unit = {
     frame = frame.moveCursorDown
+    printFrame()
+  }
+
+  override def moveToLineStart(): Unit = {
+    val newPosition = frame.cursorPosition.copy(at = 1)
+    frame = frame.copy(cursorPosition = newPosition)
     printFrame()
   }
 
