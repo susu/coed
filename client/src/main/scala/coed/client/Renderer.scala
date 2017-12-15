@@ -20,7 +20,7 @@ class SimpleRenderer extends Renderer {
   override def cursorPosition: Int = {
     val x: Int = frame.bufferOffset._1 + frame.cursorPosition.at
     val y: Int = frame.bufferOffset._2 + frame.cursorPosition.line
-    buffer.render.lines.take(y - 1).toVector.map(_.length + 1).sum+x
+    coordinateToPosition(x, y)
   }
 
   override def moveLeft(): Unit = {
@@ -47,8 +47,11 @@ class SimpleRenderer extends Renderer {
   }
 
   override def syncBuffer(command: Command, revision: Long): Unit = {
+    val oldBuffer = buffer
     buffer = buffer.applyCommand(command).getOrElse(buffer)
-    frame = Frame(bufferText = buffer.render)
+    val lineDiff: Int = buffer.render.lines.length - oldBuffer.render.lines.length
+    val (x, y) = frame.bufferOffset
+    frame = Frame(buffer.render, bufferOffset = (x, y+lineDiff), cursorPosition = frame.cursorPosition)
     printFrame()
   }
 
@@ -57,5 +60,8 @@ class SimpleRenderer extends Renderer {
     frame.visibleLines.foreach { line => println(line + "\r") }
     print(Ansi.moveCursorCode(frame.cursorPosition.at, frame.cursorPosition.line))
   }
+
+  def coordinateToPosition(x: Int, y: Int): Int = buffer.render.lines.take(y - 1).toVector.map(_.length + 1).sum+x
+  def isBeforeFrame(position: Int): Boolean = position < coordinateToPosition(frame.bufferOffset._1, frame.bufferOffset._2)
 }
 
