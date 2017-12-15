@@ -9,11 +9,17 @@ trait Renderer {
   def moveRight(): Unit
   def moveUp(): Unit
   def moveDown(): Unit
+
+  def cursorPosition: Int
 }
 
 class SimpleRenderer extends Renderer {
   private var buffer: Option[Buffer] = None
   private var frame: Frame = Frame("")
+
+  override def cursorPosition: Int = {
+    0
+  }
 
   override def moveLeft(): Unit = {
     frame = frame.moveCursorLeft

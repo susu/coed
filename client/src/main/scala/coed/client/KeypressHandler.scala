@@ -33,7 +33,7 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, rende
       clientActor ! ChangeToInsertMode
 
     case Character('d') =>
-      welcomeActor.tell(Edit(currentBufferId.get, Delete(0, 1), 0), clientActor)
+      welcomeActor.tell(Edit(currentBufferId.get, Delete(renderer.cursorPosition, 1), 0), clientActor)
 
     case Character('q') =>
       System.exit(0)
@@ -46,11 +46,11 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, rende
 
   def handleKeyPressInInsertMode(keypress: KeyPress): Unit = keypress match {
     case Character(c) =>
-      welcomeActor.tell(Edit(currentBufferId.get, Insert(c.toString, 0), 0), clientActor)
+      welcomeActor.tell(Edit(currentBufferId.get, Insert(c.toString, renderer.cursorPosition), 0), clientActor)
       renderer.moveRight
 
     case Enter =>
-      welcomeActor.tell(Edit(currentBufferId.get, Insert("\n", 0), 0), clientActor)
+      welcomeActor.tell(Edit(currentBufferId.get, Insert("\n", renderer.cursorPosition), 0), clientActor)
       renderer.moveDown
 
     case Escape =>
