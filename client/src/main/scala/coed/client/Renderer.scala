@@ -15,10 +15,10 @@ class SimpleRenderer extends Renderer {
   private var buffer: Option[Buffer] = None
   private var frame: Option[Frame] = None
 
-  override def moveLeft(): Unit = frame.foreach(_.moveCursorUp)
-  override def moveRight(): Unit = frame.foreach(_.moveCursorUp)
+  override def moveLeft(): Unit = frame.foreach(_.moveCursorLeft)
+  override def moveRight(): Unit = frame.foreach(_.moveCursorRight)
   override def moveUp(): Unit = frame.foreach(_.moveCursorUp)
-  override def moveDown(): Unit = frame.foreach(_.moveCursorUp)
+  override def moveDown(): Unit = frame.foreach(_.moveCursorDown)
 
   override def newBuffer(text: String, revision: Long): Unit = {
     buffer = Some(new StringBuf(text))
