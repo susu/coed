@@ -13,8 +13,7 @@ import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 
-class BufferActor(var filename: String) extends Actor {
-  val workspaceDir = "workspace"
+class BufferActor(var filename: String, val workspaceDir: String) extends Actor {
   filename = workspaceDir + '/' + filename
   var buffer: Buffer = new StringBuf(loadBuffer)
 
