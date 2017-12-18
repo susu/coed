@@ -39,7 +39,9 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
         case Left(err) => log(err.toString)
       }
 
-    case move: InternalMessage.MoveCursor => handleMoveCursor(move)
+    case move: InternalMessage.MoveCursor =>
+      handleMoveCursor(move)
+      render()
 
     case InternalMessage.Delete =>
       remoteActor ! Edit(currentBufferId.get, Delete(cursorPosition(frame, buffer), 1), 0)
@@ -54,8 +56,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
   private def syncFrame(): Unit = {
     // TODO it will not scroll with the updated content
     frame = frame.copy(bufferText = buffer.render)
-    BufferRenderer.show(frame)
+    render()
   }
+
+  private def render(): Unit = BufferRenderer.show(frame)
 
   private def handleMoveCursor(cursor: InternalMessage.MoveCursor): Unit = cursor match {
     case InternalMessage.Left => frame = frame.moveCursorLeft
