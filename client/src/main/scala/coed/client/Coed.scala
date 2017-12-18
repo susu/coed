@@ -29,7 +29,7 @@ object Coed extends App {
   val actorPath = AkkaConfigFactory.getWelcomeActorPath(arguments.serverIp(), 42000)
   val welcomeActor: ActorSelection = actorSystem.actorSelection(actorPath)
 
-  val client = actorSystem.actorOf(Props(new NewClientActor(welcomeActor)))
+  val client = actorSystem.actorOf(Props(new ClientActor(welcomeActor)))
 
   val keypressHandler = actorSystem.actorOf(Props(new KeypressHandlerActor(client)))
 

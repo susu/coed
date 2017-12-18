@@ -9,8 +9,8 @@ import akka.actor.{Actor, ActorSelection}
 import coed.common.Protocol._
 import coed.common._
 
-class NewClientActor(remoteActor: ActorSelection) extends Actor {
-  import NewClientActor.cursorPosition
+class ClientActor(remoteActor: ActorSelection) extends Actor {
+  import ClientActor.cursorPosition
 
   private var buffer: Buffer = new StringBuf("")
   private var frame: Frame = Frame(bufferText = buffer.render)
@@ -64,7 +64,7 @@ class NewClientActor(remoteActor: ActorSelection) extends Actor {
   }
 }
 
-object NewClientActor {
+object ClientActor {
   def cursorPosition(thisFrame: Frame, buf: Buffer): Int = {
     val x: Int = thisFrame.bufferOffset._1 + thisFrame.cursorPosition.at - 1
     val y: Int = (thisFrame.bufferOffset._2 - 1) + thisFrame.cursorPosition.line
