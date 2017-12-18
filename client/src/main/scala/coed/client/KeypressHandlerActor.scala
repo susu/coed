@@ -47,6 +47,21 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       clientActor ! InternalMessage.CommandBufferChanged("")
       stay using NormalModeState("")
 
+    case Event(KeyPressMessage(Character('d')), NormalModeState("d")) =>
+      clientActor ! InternalMessage.DeleteLine
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
+    case Event(KeyPressMessage(Character('$')), NormalModeState("d")) =>
+      clientActor ! InternalMessage.DeleteUntilEndOfLine
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
+    case Event(KeyPressMessage(Character('D')), NormalModeState("")) =>
+      clientActor ! InternalMessage.DeleteUntilEndOfLine
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
     case Event(KeyPressMessage(Character('w')), NormalModeState(":")) =>
       clientActor ! InternalMessage.SaveBuffer
       clientActor ! InternalMessage.CommandBufferChanged("")

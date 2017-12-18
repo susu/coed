@@ -17,6 +17,8 @@ object InternalMessage {
 
   case object Delete
   case object DeleteWord
+  case object DeleteLine
+  case object DeleteUntilEndOfLine
 
   case object SaveBuffer
 

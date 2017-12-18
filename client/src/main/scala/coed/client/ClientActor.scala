@@ -10,7 +10,7 @@ import coed.common.Protocol._
 import coed.common._
 
 class ClientActor(remoteActor: ActorSelection) extends Actor {
-  import ClientActor.{cursorPosition, framePosition}
+  import ClientActor.{cursorPosition, framePosition, lineStartPosition}
 
   remoteActor ! Join
 
@@ -50,6 +50,13 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
 
     case InternalMessage.Delete =>
       remoteActor ! Edit(currentBufferId.get, Delete(cursorPosition(frame, buffer), 1), 0)
+
+    case InternalMessage.DeleteLine =>
+      remoteActor ! Edit(currentBufferId.get, Delete(lineStartPosition(frame, buffer), frame.currentLineLength + 1), 0)
+
+    case InternalMessage.DeleteUntilEndOfLine =>
+      val restOfLine: Int = frame.currentLineLength - frame.cursorPosition.at
+      remoteActor ! Edit(currentBufferId.get, Delete(cursorPosition(frame, buffer), restOfLine + 1), 0)
 
     case InternalMessage.InsertText(text) =>
       remoteActor ! Edit(currentBufferId.get, Insert(text, cursorPosition(frame, buffer)), 0)
@@ -104,6 +111,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
 }
 
 object ClientActor {
+  def lineStartPosition(thisFrame: Frame, buf: Buffer): Int = {
+    cursorPosition(thisFrame, buf) - thisFrame.cursorPosition.at
+  }
+
   def framePosition(thisFrame: Frame, buf: Buffer): Int = {
     coordinateToPosition(thisFrame.bufferOffset._1, thisFrame.bufferOffset._2, buf)
   }
