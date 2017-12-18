@@ -11,7 +11,7 @@ import scala.util.{Failure, Success, Try}
 
 class BufferFile(val workspace: String, val bufferId: BufferId)
 {
-  val filename: String = workspace + bufferId
+  val filename: String = workspace + "/" + bufferId
 
   def load: String = {
     val fileHandle = Try { Source.fromFile(filename) }
