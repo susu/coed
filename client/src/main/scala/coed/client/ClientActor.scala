@@ -45,6 +45,9 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       handleMoveCursor(move)
       render()
 
+    case InternalMessage.SaveBuffer =>
+      remoteActor ! Persist(currentBufferId.get)
+
     case InternalMessage.Delete =>
       remoteActor ! Edit(currentBufferId.get, Delete(cursorPosition(frame, buffer), 1), 0)
 
