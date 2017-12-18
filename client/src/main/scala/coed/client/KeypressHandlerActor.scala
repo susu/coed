@@ -106,6 +106,7 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       val newBuffer: String = keypress match {
         case Character(c) => inputBuffer + c
         case Enter => inputBuffer ++ "\n"
+        case Backspace => Option(inputBuffer.init).getOrElse("")
         case _ => inputBuffer
       }
       clientActor ! InternalMessage.TextInsertBufferChanged(newBuffer)

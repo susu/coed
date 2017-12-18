@@ -12,3 +12,4 @@ case class Character(c: Char) extends KeyPress
 case object Escape extends KeyPress
 case class Unknown(code: Int) extends KeyPress
 case object Enter extends KeyPress
+case object Backspace extends KeyPress

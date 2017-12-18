@@ -35,6 +35,8 @@ class Cli(send: KeyPress => Unit) {
       send(Character(key.toChar))
     } else if (key == 27) {
       send(Escape)
+    } else if (key == 127) {
+      send(Backspace)
     } else if (key == 10 || key == 13) {
       send(Enter)
     } else {
