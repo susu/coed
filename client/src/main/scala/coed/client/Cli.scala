@@ -11,20 +11,21 @@ class Cli(send: KeyPress => Unit) {
     def readKey: Int = System.in.read
 
     @tailrec
-    def loop(key: Int): Unit = {
-      handleKey(key) match {
-        case Some(Continue) =>
-          loop(readKey)
+    def loop(input: Option[Int]): Unit = input match {
+      case None => loop(Some(readKey))
+      case Some(key) =>
+        handleKey(key) match {
+          case Some(Continue) =>
+            loop(Some(readKey))
 
-        case None =>
-          println("error")
-          loop(readKey)
+          case None =>
+            loop(Some(readKey))
 
-        case Some(Stop) => System.exit(0)
-      }
+          case Some(Stop) => System.exit(0)
+        }
     }
 
-    loop(' ')
+    loop(None)
   })
   thread.setDaemon(true)
   thread.start()

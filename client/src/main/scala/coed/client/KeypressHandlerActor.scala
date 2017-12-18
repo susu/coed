@@ -36,7 +36,7 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       stay using ""
 
     case Event(KeyPressMessage(Character(c)), "v") =>
-      clientActor ! InternalMessage.ChooseBuffer(c.toInt)
+      clientActor ! InternalMessage.ChooseBuffer(Option(c.toInt).getOrElse(0))
       stay using ""
 
     case Event(KeyPressMessage(Character('w')), "d") =>
@@ -48,20 +48,23 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       val newInputBuffer: InputBuffer = if (inputBuffer.length <= MaxCommandLength) inputBuffer + c else ""
       clientActor ! InternalMessage.CommandBufferChanged(newInputBuffer)
       stay using newInputBuffer
+
+    case Event(_, inputBuffer) =>
+      println(s"buffercontent: |$inputBuffer|")
+      stay using inputBuffer
   }
 
   when(InsertMode) {
-    case Event(Escape, inputBuffer) =>
+    case Event(KeyPressMessage(Escape), inputBuffer) =>
       clientActor ! InternalMessage.InsertText(inputBuffer)
       clientActor ! InternalMessage.TextInsertBufferChanged("")
       goto(NormalMode) using ""
 
-    case Event(keypress, inputBuffer) =>
+    case Event(KeyPressMessage(keypress), inputBuffer) =>
       val newBuffer: InputBuffer = keypress match {
         case Character(c) => inputBuffer + c
         case Enter => inputBuffer ++ "\n"
-        case Unknown(_) => inputBuffer
-        case Escape => inputBuffer
+        case _ => inputBuffer
       }
       clientActor ! InternalMessage.TextInsertBufferChanged(newBuffer)
       stay using newBuffer
