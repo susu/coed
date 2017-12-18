@@ -39,8 +39,9 @@ object BufferRenderer {
     output.append(decoratorLine)
     output.append(Ansi.moveCursorCode(1, Frame.DEFAULT_FRAME_HEIGHT + 2))
     text.lines.foreach(line => {
-      output.append(line++"\n\r")
+      output.append(line + Ansi.colorBackground(6))
       output.append("." * (Frame.DEFAULT_FRAME_WIDTH - line.length))
+      output.append(Ansi.resetColor + "\n\r")
     })
     output.append(decoratorLine)
     output.flush()
