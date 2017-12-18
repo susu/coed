@@ -50,7 +50,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       remoteActor ! Edit(currentBufferId.get, Insert(text, cursorPosition(frame, buffer)), 0)
 
     case InternalMessage.TextInsertBufferChanged(text) =>
-      print(text + "\r\n")
+      BufferRenderer.showAlternateBuffer(text)
+
+    case InternalMessage.CommandBufferChanged(buffer) =>
+      BufferRenderer.showAlternateBuffer(buffer)
   }
 
   private def syncFrame(): Unit = {
