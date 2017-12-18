@@ -16,4 +16,6 @@ object InternalMessage {
 
   case class CommandBufferChanged(buffer: String)
   case class TextInsertBufferChanged(buffer: String)
+
+  case class ChooseBuffer(index: Int)
 }

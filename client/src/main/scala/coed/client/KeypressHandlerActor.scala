@@ -31,6 +31,14 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       clientActor ! InternalMessage.Delete
       stay using ""
 
+    case Event(KeyPressMessage(Character('q')), "") =>
+      System.exit(0)
+      stay using ""
+
+    case Event(KeyPressMessage(Character(c)), "v") =>
+      clientActor ! InternalMessage.ChooseBuffer(c.toInt)
+      stay using ""
+
     case Event(KeyPressMessage(Character('w')), "d") =>
       clientActor ! InternalMessage.DeleteWord
       clientActor ! InternalMessage.CommandBufferChanged("")
