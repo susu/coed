@@ -50,7 +50,6 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       stay using newInputBuffer
 
     case Event(_, inputBuffer) =>
-      println(s"buffercontent: |$inputBuffer|")
       stay using inputBuffer
   }
 
