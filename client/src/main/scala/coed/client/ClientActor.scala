@@ -69,7 +69,7 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       val (offsetX, offsetY) = frame.bufferOffset
       frame.copy(
         bufferText = newBuffer.render,
-        bufferOffset = (offsetX, offsetY + lineDiff))
+        bufferOffset = (offsetX, offsetY - lineDiff))
     } else {
       //todo: handle inside frame changes
       frame.copy(bufferText = newBuffer.render)
