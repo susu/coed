@@ -12,6 +12,8 @@ import coed.common._
 class ClientActor(remoteActor: ActorSelection) extends Actor {
   import ClientActor.cursorPosition
 
+  remoteActor ! Join
+
   private var buffer: Buffer = new StringBuf("")
   private var frame: Frame = Frame(bufferText = buffer.render)
 
@@ -46,7 +48,7 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       remoteActor ! Edit(currentBufferId.get, Insert(text, cursorPosition(frame, buffer)), 0)
 
     case InternalMessage.TextInsertBufferChanged(text) =>
-      println(text)
+      print(text + "\r\n")
   }
 
   private def syncFrame(): Unit = {
