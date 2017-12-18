@@ -27,14 +27,16 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     case OpenSuccess(bufferContent, revision) =>
       log(s"Buffer opened: $currentBufferId, $revision")
       buffer = new StringBuf(bufferContent)
-      syncFrame()
+      frame = frame.copy(bufferText = buffer.render)
+      render()
 
     case Sync(bufferId, cmd, r) =>
       log(s"Sync: $bufferId, $cmd, $r")
       buffer.applyCommand(cmd) match {
         case Right(newBuffer) => {
+          frame = syncFrame(buffer, newBuffer, cmd)
           buffer = newBuffer
-          syncFrame()
+          render()
         }
         case Left(err) => log(err.toString)
       }
@@ -59,10 +61,20 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       BufferRenderer.showAlternateBuffer(buffer)
   }
 
-  private def syncFrame(): Unit = {
-    // TODO it will not scroll with the updated content
-    frame = frame.copy(bufferText = buffer.render)
-    render()
+  private def syncFrame(oldBuffer:Buffer, newBuffer: Buffer, cmd: Command): Frame = {
+    def lines(b: Buffer): Int = b.render.lines.size
+
+    val lineDiff: Int = lines(oldBuffer) - lines(newBuffer)
+    val newFrame: Frame = if (cmd.position < cursorPosition(frame, oldBuffer)) {
+      val (offsetX, offsetY) = frame.bufferOffset
+      frame.copy(
+        bufferText = newBuffer.render,
+        bufferOffset = (offsetX, offsetY + lineDiff))
+    } else {
+      //todo: handle inside frame changes
+      frame.copy(bufferText = newBuffer.render)
+    }
+    newFrame
   }
 
   private def render(): Unit = BufferRenderer.show(frame)
