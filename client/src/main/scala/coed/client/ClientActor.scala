@@ -109,7 +109,8 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
   }
 
   private def log(msg: String): Unit = {
-    Console.err.println(msg + "\r\n")
+    if (msg == null)
+      Console.err.println(msg + "\r\n")
   }
 }
 
