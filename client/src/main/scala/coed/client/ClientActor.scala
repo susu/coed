@@ -10,7 +10,7 @@ import coed.common.Protocol._
 import coed.common._
 
 class ClientActor(remoteActor: ActorSelection) extends Actor {
-  import ClientActor.cursorPosition
+  import ClientActor.{cursorPosition, framePosition}
 
   remoteActor ! Join
 
@@ -68,13 +68,18 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     def lines(b: Buffer): Int = b.render.lines.size
 
     val lineDiff: Int = lines(oldBuffer) - lines(newBuffer)
-    val newFrame: Frame = if (cmd.position < cursorPosition(frame, oldBuffer)) {
+    val newFrame: Frame = if (cmd.position < framePosition(frame, oldBuffer)) {
       val (offsetX, offsetY) = frame.bufferOffset
       frame.copy(
         bufferText = newBuffer.render,
         bufferOffset = (offsetX, offsetY - lineDiff))
+    } else if (cmd.position < cursorPosition(frame, oldBuffer)) {
+      val oldCoords: FrameCoords = frame.cursorPosition
+      frame.copy(
+        bufferText = newBuffer.render,
+        cursorPosition = FrameCoords(oldCoords.at, oldCoords.line - lineDiff)
+      )
     } else {
-      //todo: handle inside frame changes
       frame.copy(bufferText = newBuffer.render)
     }
     newFrame
@@ -95,6 +100,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
 }
 
 object ClientActor {
+  def framePosition(thisFrame: Frame, buf: Buffer): Int = {
+    coordinateToPosition(thisFrame.bufferOffset._1, thisFrame.bufferOffset._2, buf)
+  }
+
   def cursorPosition(thisFrame: Frame, buf: Buffer): Int = {
     val x: Int = thisFrame.bufferOffset._1 + thisFrame.cursorPosition.at - 1
     val y: Int = thisFrame.bufferOffset._2 + thisFrame.cursorPosition.line - 1
