@@ -1,9 +1,6 @@
 package coed.client
 
 object InternalMessage {
-  case object ChangeToNormalMode
-  case object ChangeToInsertMode
-
   sealed trait MoveCursor
   case object Left extends MoveCursor
   case object Right extends MoveCursor
