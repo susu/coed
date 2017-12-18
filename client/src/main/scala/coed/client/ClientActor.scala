@@ -4,10 +4,10 @@ import akka.actor.{Actor, ActorSelection}
 import coed.client.InternalMessage.{ChangeToInsertMode, ChangeToNormalMode}
 import coed.common.Protocol._
 
-class ClientActor(welcomeActor: ActorSelection, renderer: Renderer) extends Actor {
+class ClientActor(welcomeActor: ActorSelection, bufferState: BufferState) extends Actor {
   welcomeActor ! Join
 
-  private val keypressHandler: KeypressHandler = new KeypressHandler(self, welcomeActor, renderer)
+  private val keypressHandler: KeypressHandler = new KeypressHandler(self, welcomeActor, bufferState)
 
   override def receive: Receive = {
     case JoinSuccess(bufferList) =>
@@ -20,7 +20,7 @@ class ClientActor(welcomeActor: ActorSelection, renderer: Renderer) extends Acto
       keypressHandler.handleKeyPressInChooseBufferMode(bufferList, keypress)
 
     case OpenSuccess(buffer, rev) =>
-      renderer.newBuffer(buffer, rev)
+      bufferState.newBuffer(buffer, rev)
       context.become(normalModeBehavior.orElse(handleSync))
   }
 
@@ -39,7 +39,7 @@ class ClientActor(welcomeActor: ActorSelection, renderer: Renderer) extends Acto
   }
 
   private def handleSync: Receive = {
-    case Sync(_, cmd, r) => renderer.syncBuffer(cmd, r)
+    case Sync(_, cmd, r) => bufferState.syncBuffer(cmd, r)
   }
 
   private def printBufferList(bufferList: List[BufferId]) = {

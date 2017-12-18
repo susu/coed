@@ -2,10 +2,10 @@ package coed.client
 
 import akka.actor.{ActorRef, ActorSelection}
 import coed.client.InternalMessage.{ChangeToInsertMode, ChangeToNormalMode}
-import coed.common.{Delete, Insert}
+import coed.common.Delete
 import coed.common.Protocol.{BufferId, Edit, Open, Persist}
 
-class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, renderer: Renderer) {
+class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, bufferState: BufferState) {
   private var currentBufferId: Option[BufferId] = None
 
   def handleKeyPressInChooseBufferMode(bufferList: List[BufferId], keypress: KeyPress): Unit = keypress match {
@@ -24,20 +24,20 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, rende
   }
 
   def handleKeyPressInNormalMode(keyPress: KeyPress): Unit = keyPress match {
-    case Character('h') => renderer.moveLeft
-    case Character('j') => renderer.moveDown
-    case Character('k') => renderer.moveUp
-    case Character('l') => renderer.moveRight
+    case Character('h') => bufferState.moveLeft
+    case Character('j') => bufferState.moveDown
+    case Character('k') => bufferState.moveUp
+    case Character('l') => bufferState.moveRight
 
     case Character('i') =>
       clientActor ! ChangeToInsertMode
 
     case Character('a') =>
       clientActor ! ChangeToInsertMode
-      renderer.moveRight
+      bufferState.moveRight
 
     case Character('d') =>
-      welcomeActor.tell(Edit(currentBufferId.get, Delete(renderer.cursorPosition, 1), 0), clientActor)
+      welcomeActor.tell(Edit(currentBufferId.get, Delete(bufferState.cursorPosition, 1), 0), clientActor)
 
     case Character('q') =>
       System.exit(0)
@@ -49,15 +49,16 @@ class KeypressHandler(clientActor: ActorRef, welcomeActor: ActorSelection, rende
   }
 
   def handleKeyPressInInsertMode(keypress: KeyPress): Unit = keypress match {
-    case Character(c) =>
-      welcomeActor.tell(Edit(currentBufferId.get, Insert(c.toString, renderer.cursorPosition), 0), clientActor)
-      renderer.moveRight
+    case Character(c@_) =>
+      print("cica")
+      // TODO renderer.insertIntoCurrentText(c)
 
     case Enter =>
-      welcomeActor.tell(Edit(currentBufferId.get, Insert("\n", renderer.cursorPosition), 0), clientActor)
-      renderer.moveToLineStart
+      print("kutyus")
+      // TODO renderer.insertIntoCurrentText('\n')
 
     case Escape =>
+      // TODO welcomeActor.tell(Edit(currentBufferId.get, Insert(currentInsertedText.toString, renderer.cursorPosition), 0), clientActor)
       clientActor ! ChangeToNormalMode
 
     case kp => Console.err.println(s"Unhandled input: $kp")
