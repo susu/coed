@@ -33,5 +33,7 @@ object Coed extends App {
     welcomeActor,
     new BufferState())))
 
-  val cli: Cli = new Cli( keypress => client ! KeyPressMessage(keypress))
+  val keypressHandler = actorSystem.actorOf(Props(new KeypressHandlerActor(client)))
+
+  val cli: Cli = new Cli( keypress => keypressHandler ! KeyPressMessage(keypress))
 }
