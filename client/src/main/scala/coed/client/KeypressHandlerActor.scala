@@ -42,11 +42,6 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       clientActor ! InternalMessage.ChooseBuffer(Option(c.toInt).getOrElse(0))
       stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('w')), NormalModeState("d")) =>
-      clientActor ! InternalMessage.DeleteWord
-      clientActor ! InternalMessage.CommandBufferChanged("")
-      stay using NormalModeState("")
-
     case Event(_, _) =>
       stay using NormalModeState("")
   }
