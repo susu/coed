@@ -12,4 +12,8 @@ object InternalMessage {
 
   case class InsertText(text: String)
   case object Delete
+  case object DeleteWord
+
+  case class CommandBufferChanged(buffer: String)
+  case class TextInsertBufferChanged(buffer: String)
 }
