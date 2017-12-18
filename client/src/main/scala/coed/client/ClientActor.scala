@@ -64,6 +64,9 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     case InternalMessage.InsertAfterText(text) =>
       remoteActor ! Edit(currentBufferId.get, Insert(text, cursorPosition(frame, buffer) + 1), 0)
 
+    case InternalMessage.InsertNextLineText(text) =>
+      remoteActor ! Edit(currentBufferId.get, Insert("\n" ++ text, cursorPosition(frame, buffer) + frame.currentLineLength), 0)
+
     case InternalMessage.TextInsertBufferChanged(text) =>
       BufferRenderer.showAlternateBuffer(text)
 

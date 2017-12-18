@@ -14,6 +14,7 @@ object InternalMessage {
   sealed trait InsertMessage
   case class InsertText(text: String) extends InsertMessage
   case class InsertAfterText(text: String) extends InsertMessage
+  case class InsertNextLineText(text: String) extends InsertMessage
 
   case object Delete
   case object DeleteWord

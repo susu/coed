@@ -14,6 +14,9 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
     case Event(KeyPressMessage(Character('a')), NormalModeState("")) =>
       goto(InsertMode) using InsertModeState((buffer : String) => InternalMessage.InsertAfterText(buffer),"")
 
+    case Event(KeyPressMessage(Character('o')), NormalModeState("")) =>
+      goto(InsertMode) using InsertModeState((buffer : String) => InternalMessage.InsertNextLineText(buffer),"")
+
     case Event(KeyPressMessage(Character('h')), NormalModeState("")) =>
       clientActor ! InternalMessage.Left
       stay using NormalModeState("")
