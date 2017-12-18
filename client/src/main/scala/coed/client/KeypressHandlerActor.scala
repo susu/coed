@@ -52,6 +52,26 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       clientActor ! InternalMessage.CommandBufferChanged("")
       stay using NormalModeState("")
 
+    case Event(KeyPressMessage(Character('g')), NormalModeState("g")) =>
+      clientActor ! InternalMessage.Top
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
+    case Event(KeyPressMessage(Character('G')), NormalModeState("")) =>
+      clientActor ! InternalMessage.Bottom
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
+    case Event(KeyPressMessage(Character('$')), NormalModeState("")) =>
+      clientActor ! InternalMessage.LineEnd
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
+    case Event(KeyPressMessage(Character('|')), NormalModeState("")) =>
+      clientActor ! InternalMessage.LineStart
+      clientActor ! InternalMessage.CommandBufferChanged("")
+      stay using NormalModeState("")
+
     case Event(KeyPressMessage(Character(c)), NormalModeState(inputBuffer)) =>
       val newInputBuffer: String = if (inputBuffer.length < (MaxCommandLength - 1)) inputBuffer + c else ""
       clientActor ! InternalMessage.CommandBufferChanged(newInputBuffer)

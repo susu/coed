@@ -57,10 +57,10 @@ case class Frame(bufferText: String,
     }
   }
 
+  val currentLineLength = if (linesInBuffer.size > 0 ) linesInBuffer(cursorPosition.line - 1).size
+                          else 0
+
   def moveCursorRight: Frame = {
-    val currentLineLength =
-      if (linesInBuffer.size > 0 ) linesInBuffer(cursorPosition.line - 1).size
-      else 0
     if (cursorPosition.at == frameWidth) { // cursor is at right edge of frame
         if (bufferOffset._1 == currentLineLength - frameWidth) this
         else this.copy(bufferOffset = (this.bufferOffset._1 + 1, this.bufferOffset._2))

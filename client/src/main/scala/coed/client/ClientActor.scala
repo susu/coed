@@ -92,6 +92,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     case InternalMessage.Right => frame = frame.moveCursorRight
     case InternalMessage.Up => frame = frame.moveCursorUp
     case InternalMessage.Down => frame = frame.moveCursorDown
+    case InternalMessage.Top => frame = frame.copy(bufferOffset = (0, 0), cursorPosition = FrameCoords(1, 1))
+    case InternalMessage.Bottom => frame = frame.copy(bufferOffset = (0, buffer.render.lines.size), cursorPosition = FrameCoords(1, 1))
+    case InternalMessage.LineStart => frame = frame.copy(cursorPosition = frame.cursorPosition.copy(at=1))
+    case InternalMessage.LineEnd => frame = frame.copy(cursorPosition = frame.cursorPosition.copy(at=frame.currentLineLength))
   }
 
   private def log(msg: String): Unit = {
