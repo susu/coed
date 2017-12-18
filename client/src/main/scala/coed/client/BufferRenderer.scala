@@ -38,7 +38,11 @@ object BufferRenderer {
     output.append(Ansi.moveCursorCode(1, Frame.DEFAULT_FRAME_HEIGHT + 1))
     output.append(decoratorLine)
     output.append(Ansi.moveCursorCode(1, Frame.DEFAULT_FRAME_HEIGHT + 2))
-    text.lines.foreach(line => {
+
+    // magic split that maintains \n endings
+    val lines: Array[String] = text.split("\n", -1)
+
+    lines.foreach(line => {
       output.append(line + Ansi.colorBackground(6))
       output.append("." * (Frame.DEFAULT_FRAME_WIDTH - line.length))
       output.append(Ansi.resetColor + "\n\r")
