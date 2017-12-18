@@ -3,7 +3,7 @@ package coed.client
 import akka.actor.{FSM, ActorRef}
 
 class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerActor.Mode, KeypressHandlerActor.State] {
-  import KeypressHandlerActor.{NormalMode, InsertMode, MaxCommandLength, NormalModeState, InsertModeState}
+  import KeypressHandlerActor.{NormalMode, InsertMode, NormalModeState, InsertModeState}
 
   startWith(NormalMode, NormalModeState(""))
 
@@ -47,13 +47,8 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       clientActor ! InternalMessage.CommandBufferChanged("")
       stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character(c)), NormalModeState(inputBuffer)) =>
-      val newInputBuffer: String = if (inputBuffer.length <= MaxCommandLength) inputBuffer + c else ""
-      clientActor ! InternalMessage.CommandBufferChanged(newInputBuffer)
-      stay using NormalModeState(newInputBuffer)
-
-    case Event(_, inputBuffer) =>
-      stay using inputBuffer
+    case Event(_, _) =>
+      stay using NormalModeState("")
   }
 
   when(InsertMode) {
@@ -77,8 +72,6 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
 
 
 object KeypressHandlerActor {
-  val MaxCommandLength: Int = 3
-
   sealed trait Mode
   case object InsertMode extends Mode
   case object NormalMode extends Mode
