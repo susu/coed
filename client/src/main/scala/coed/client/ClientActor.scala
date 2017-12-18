@@ -76,10 +76,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
 object ClientActor {
   def cursorPosition(thisFrame: Frame, buf: Buffer): Int = {
     val x: Int = thisFrame.bufferOffset._1 + thisFrame.cursorPosition.at - 1
-    val y: Int = (thisFrame.bufferOffset._2 - 1) + thisFrame.cursorPosition.line
+    val y: Int = thisFrame.bufferOffset._2 + thisFrame.cursorPosition.line - 1
     coordinateToPosition(x, y, buf)
   }
 
   private def coordinateToPosition(x: Int, y: Int, buf: Buffer): Int =
-    buf.render.lines.take(y - 1).toVector.map(_.length + 1).sum+x
+    buf.render.lines.take(y).toVector.map(_.length + 1).sum + x
 }
