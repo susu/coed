@@ -49,6 +49,7 @@ class NewClientActor(remoteActor: ActorSelection) extends Actor {
   private def syncFrame(): Unit = {
     // TODO it will not scroll with the updated content
     frame = frame.copy(bufferText = buffer.render)
+    BufferRenderer.show(frame)
   }
 
   private def handleMoveCursor(cursor: InternalMessage.MoveCursor): Unit = cursor match {

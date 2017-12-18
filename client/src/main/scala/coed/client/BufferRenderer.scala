@@ -2,7 +2,7 @@ package coed.client
 
 import coed.common.Frame
 
-class BufferRenderer {
+object BufferRenderer {
   def show(frame: Frame): Unit = {
     print(Ansi.clearScreenCode)
     frame.visibleLines.foreach { line => println(line + "\r") }
