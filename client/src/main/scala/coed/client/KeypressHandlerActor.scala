@@ -2,71 +2,74 @@ package coed.client
 
 import akka.actor.{FSM, ActorRef}
 
-class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerActor.Mode, KeypressHandlerActor.InputBuffer] {
-  import KeypressHandlerActor.{NormalMode, InsertMode, InputBuffer, MaxCommandLength}
+class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerActor.Mode, KeypressHandlerActor.State] {
+  import KeypressHandlerActor.{NormalMode, InsertMode, MaxCommandLength, NormalModeState, InsertModeState}
 
-  startWith(NormalMode, "")
+  startWith(NormalMode, NormalModeState(""))
 
   when(NormalMode) {
-    case Event(KeyPressMessage(Character('i')), "") =>
-      goto(InsertMode) using ""
+    case Event(KeyPressMessage(Character('i')), NormalModeState("")) =>
+      goto(InsertMode) using InsertModeState((buffer : String) => InternalMessage.InsertText(buffer),"")
 
-    case Event(KeyPressMessage(Character('h')), "") =>
+    case Event(KeyPressMessage(Character('a')), NormalModeState("")) =>
+      goto(InsertMode) using InsertModeState((buffer : String) => InternalMessage.InsertAfterText(buffer),"")
+
+    case Event(KeyPressMessage(Character('h')), NormalModeState("")) =>
       clientActor ! InternalMessage.Left
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('j')), "") =>
+    case Event(KeyPressMessage(Character('j')), NormalModeState("")) =>
       clientActor ! InternalMessage.Down
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('k')), "") =>
+    case Event(KeyPressMessage(Character('k')), NormalModeState("")) =>
       clientActor ! InternalMessage.Up
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('l')), "") =>
+    case Event(KeyPressMessage(Character('l')), NormalModeState("")) =>
       clientActor ! InternalMessage.Right
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('x')), "") =>
+    case Event(KeyPressMessage(Character('x')), NormalModeState("")) =>
       clientActor ! InternalMessage.Delete
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('q')), "") =>
+    case Event(KeyPressMessage(Character('q')), NormalModeState("")) =>
       System.exit(0)
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character(c)), "v") =>
+    case Event(KeyPressMessage(Character(c)), NormalModeState("v")) =>
       clientActor ! InternalMessage.ChooseBuffer(Option(c.toInt).getOrElse(0))
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character('w')), "d") =>
+    case Event(KeyPressMessage(Character('w')), NormalModeState("d")) =>
       clientActor ! InternalMessage.DeleteWord
       clientActor ! InternalMessage.CommandBufferChanged("")
-      stay using ""
+      stay using NormalModeState("")
 
-    case Event(KeyPressMessage(Character(c)), inputBuffer) =>
-      val newInputBuffer: InputBuffer = if (inputBuffer.length <= MaxCommandLength) inputBuffer + c else ""
+    case Event(KeyPressMessage(Character(c)), NormalModeState(inputBuffer)) =>
+      val newInputBuffer: String = if (inputBuffer.length <= MaxCommandLength) inputBuffer + c else ""
       clientActor ! InternalMessage.CommandBufferChanged(newInputBuffer)
-      stay using newInputBuffer
+      stay using NormalModeState(newInputBuffer)
 
     case Event(_, inputBuffer) =>
       stay using inputBuffer
   }
 
   when(InsertMode) {
-    case Event(KeyPressMessage(Escape), inputBuffer) =>
-      clientActor ! InternalMessage.InsertText(inputBuffer)
+    case Event(KeyPressMessage(Escape), InsertModeState(messageFactory, inputBuffer)) =>
+      clientActor ! messageFactory(inputBuffer)
       clientActor ! InternalMessage.TextInsertBufferChanged("")
-      goto(NormalMode) using ""
+      goto(NormalMode) using NormalModeState("")
 
-    case Event(KeyPressMessage(keypress), inputBuffer) =>
-      val newBuffer: InputBuffer = keypress match {
+    case Event(KeyPressMessage(keypress), InsertModeState(messageFactory, inputBuffer)) =>
+      val newBuffer: String = keypress match {
         case Character(c) => inputBuffer + c
         case Enter => inputBuffer ++ "\n"
         case _ => inputBuffer
       }
       clientActor ! InternalMessage.TextInsertBufferChanged(newBuffer)
-      stay using newBuffer
+      stay using InsertModeState(messageFactory, newBuffer)
   }
 
   initialize()
@@ -80,5 +83,7 @@ object KeypressHandlerActor {
   case object InsertMode extends Mode
   case object NormalMode extends Mode
 
-  type InputBuffer = String
+  sealed trait State
+  case class NormalModeState(buffer: String) extends State
+  case class InsertModeState(eventFactory: String => InternalMessage.InsertMessage, buffer: String) extends State
 }

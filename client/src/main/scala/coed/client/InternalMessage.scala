@@ -10,7 +10,10 @@ object InternalMessage {
   case object Down extends MoveCursor
   case object Up extends MoveCursor
 
-  case class InsertText(text: String)
+  sealed trait InsertMessage
+  case class InsertText(text: String) extends InsertMessage
+  case class InsertAfterText(text: String) extends InsertMessage
+
   case object Delete
   case object DeleteWord
 
