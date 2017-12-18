@@ -10,8 +10,11 @@ object BufferRenderer {
   }
 
   def showAlternateBuffer(text: String): Unit = {
-    print(Ansi.moveCursorCode(1, Frame.DEFAULT_FRAME_HEIGHT))
-    print(text)
+    print(Ansi.moveCursorCode(1, Frame.DEFAULT_FRAME_HEIGHT + 1))
+    print("--------------------------------------")
+    print(Ansi.moveCursorCode(1, Frame.DEFAULT_FRAME_HEIGHT + 2))
+    text.lines.foreach(line => print(line++"\n\r"))
+    print("--------------------------------------")
   }
 }
 
