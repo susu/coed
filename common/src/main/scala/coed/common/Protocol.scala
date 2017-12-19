@@ -3,7 +3,7 @@ package coed.common
 object Protocol {
   type BufferId = String
 
-  case object Join
+  case class Join(user: String)
   case class JoinSuccess(bufferList: List[BufferId])
 
   case class Open(bufferId: BufferId)

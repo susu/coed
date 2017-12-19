@@ -1,6 +1,7 @@
 package coed.server
 
-import akka.actor.{Actor, ActorRef, Props, Terminated}
+import akka.actor.{Actor, ActorRef, Props}
+import akka.event.Logging
 import coed.common.Protocol._
 import coed.server.InternalMessage.PersistBuffer
 import coed.server.persistence.Workspace
@@ -12,13 +13,17 @@ class WelcomingActor extends Actor {
   type BufferActorRef = ActorRef
   type ClientActorRef = ActorRef
 
+  import WelcomingActor.ClientDisconnected
+
+  val log = Logging(context.system, this)
   val workspace: String = context.system.settings.config.getString("coed.workspace")
 
   val buffers: mutable.Map[BufferId, (BufferActorRef, mutable.Set[ClientActorRef])] = new mutable.HashMap()
 
-  override def receive = {
-    case Join =>
-      context.watch(sender())
+  override def receive: Receive = {
+    case Join(user) =>
+      log.info(s"User joined: $user")
+      context.watchWith(sender(), ClientDisconnected(user, sender()))
       sender() ! JoinSuccess(Workspace.listBuffers(workspace).toList)
 
     case o: Open =>
@@ -33,7 +38,8 @@ class WelcomingActor extends Actor {
     case Persist(bid) =>
       buffers(bid)._1 ! PersistBuffer
 
-    case Terminated(client) =>
+    case ClientDisconnected(user, client: ClientActorRef) =>
+      log.info(s"User left: $user")
       buffers.values.foreach { case (bufferActor, clientSet) =>
         clientSet.remove(client)
 
@@ -66,4 +72,8 @@ class WelcomingActor extends Actor {
     val bid = syncMsg.bufferId
     buffers(bid)._2.foreach { _ ! syncMsg }
   }
+}
+
+object WelcomingActor {
+  case class ClientDisconnected(user: String, clientActorRef: ActorRef)
 }

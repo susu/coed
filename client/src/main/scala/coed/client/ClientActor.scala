@@ -13,7 +13,9 @@ import coed.common._
 class ClientActor(remoteActor: ActorSelection) extends Actor {
   import ClientActor.{cursorPosition, framePosition, lineStartPosition}
 
-  remoteActor ! Join
+  lazy val currentUserName: String = Option(System.getenv("USER")).getOrElse("rainbow-unicorn-42")
+
+  remoteActor ! Join(currentUserName)
 
   private val log = Logging(context.system, this)
 
