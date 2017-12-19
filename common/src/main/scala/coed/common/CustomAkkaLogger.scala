@@ -6,17 +6,18 @@
 package coed.common
 
 import java.io.PrintWriter
+import java.lang.management.ManagementFactory
 
 import akka.actor.Actor
 import akka.event.Logging._
 
 class CustomAkkaLogger extends Actor {
 
-  var outputFile: Option[PrintWriter] = None
+  private var outputFile: Option[PrintWriter] = None
 
   def receive: Receive = {
     case InitializeLogger(_) => {
-      outputFile = Some(new PrintWriter("akka.log", "UTF-8"))
+      outputFile = Some(new PrintWriter(logFilename, "UTF-8"))
       sender() ! LoggerInitialized
     }
 
@@ -44,5 +45,10 @@ class CustomAkkaLogger extends Actor {
   private def emit(text: String): Unit = {
     outputFile.foreach(_.println(text))
     outputFile.foreach(_.flush())
+  }
+
+  private lazy val logFilename: String = {
+    val appName = System.getProperty("app.name", ManagementFactory.getRuntimeMXBean.getName)
+    s"akka.coed-$appName.log"
   }
 }

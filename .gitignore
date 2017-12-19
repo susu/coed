@@ -3,4 +3,4 @@ target/
 *.csv
 ensime.sbt
 bin/
-akka.log
+akka*.log

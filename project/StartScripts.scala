@@ -36,12 +36,17 @@ object StartScripts extends AutoPlugin {
     "stty -echo raw"
   }
 
+  private def getAppName(cls: String): String = if (cls.endsWith("Server")) {
+    "server"
+  } else {
+    "client"
+  }
+
   private def scriptContent(cls: String, javaopts: String, classpath: String) = s"""#!/usr/bin/env bash
                                  |stty_save=$$(stty -g)
                                  |${getRawModeSnippet(cls)}
-                                 |java \\
-                                 |    $javaopts \\
-                                 |    $$JAVA_OPTS \\
+                                 |java -Dapp.name=${getAppName(cls)} \\
+                                 |    $javaopts $$JAVA_OPTS \\
                                  |    -classpath $classpath \\
                                  |    $cls "$$@"
                                  |stty $$stty_save
