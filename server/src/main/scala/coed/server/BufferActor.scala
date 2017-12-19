@@ -13,13 +13,13 @@ class BufferActor(var filename: String, val workspaceDir: String) extends Actor 
 
   override def receive = {
     case Open(_) =>
-      sender() ! OpenSuccess(buffer.render, 0)
+      sender() ! OpenSuccess(buffer.renderAll, 0)
 
     case Edit(bid, c, _) =>
       buffer = buffer.applyCommand(c).getOrElse(buffer)
       context.parent ! Sync(bid, c, 0)
 
     case PersistBuffer =>
-      bufferFile.persist(buffer.render)
+      bufferFile.persist(buffer.renderAll)
   }
 }

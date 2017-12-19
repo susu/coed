@@ -20,7 +20,7 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
   private val log = Logging(context.system, this)
 
   private var buffer: Buffer = new StringBuf("")
-  private var frame: Frame = Frame(bufferText = buffer.render, log = log)
+  private var frame: Frame = Frame(bufferText = buffer.renderAll, log = log)
 
   private var currentBufferId: Option[BufferId] = None
 
@@ -32,7 +32,7 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     case OpenSuccess(bufferContent, revision) =>
       log.info(s"Buffer opened: $currentBufferId, $revision")
       buffer = new StringBuf(bufferContent)
-      frame = frame.copy(bufferText = buffer.render)
+      frame = frame.copy(bufferText = buffer.renderAll)
       render()
 
     case Sync(bufferId, cmd, r) =>
@@ -80,22 +80,22 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
   }
 
   private def syncFrame(oldBuffer:Buffer, newBuffer: Buffer, cmd: Command): Frame = {
-    def lines(b: Buffer): Int = b.render.lines.size
+    def lines(b: Buffer): Int = b.renderAll.lines.size
 
     val lineDiff: Int = lines(oldBuffer) - lines(newBuffer)
     val newFrame: Frame = if (cmd.position < Buffer.Position(framePosition(frame, oldBuffer))) {
       val (offsetX, offsetY) = frame.bufferOffset
       frame.copy(
-        bufferText = newBuffer.render,
+        bufferText = newBuffer.renderAll,
         bufferOffset = (offsetX, offsetY - lineDiff))
     } else if (cmd.position < Buffer.Position(cursorPosition(frame, oldBuffer))) {
       val oldCoords: FrameCoords = frame.cursorPosition
       frame.copy(
-        bufferText = newBuffer.render,
+        bufferText = newBuffer.renderAll,
         cursorPosition = FrameCoords(oldCoords.at, oldCoords.line - lineDiff)
       )
     } else {
-      frame.copy(bufferText = newBuffer.render)
+      frame.copy(bufferText = newBuffer.renderAll)
     }
     newFrame
   }
@@ -108,7 +108,7 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     case InternalMessage.Up => frame = frame.moveCursorUp
     case InternalMessage.Down => frame = frame.moveCursorDown
     case InternalMessage.Top => frame = frame.copy(bufferOffset = (0, 0), cursorPosition = FrameCoords(1, 1))
-    case InternalMessage.Bottom => frame = frame.copy(bufferOffset = (0, buffer.render.lines.size), cursorPosition = FrameCoords(1, 1))
+    case InternalMessage.Bottom => frame = frame.copy(bufferOffset = (0, buffer.renderAll.lines.size), cursorPosition = FrameCoords(1, 1))
     case InternalMessage.LineStart => frame = frame.copy(cursorPosition = frame.cursorPosition.copy(at=1))
     case InternalMessage.LineEnd => frame = frame.copy(cursorPosition = frame.cursorPosition.copy(at=frame.currentLineLength))
   }
@@ -130,5 +130,5 @@ object ClientActor {
   }
 
   private def coordinateToPosition(x: Int, y: Int, buf: Buffer): Int =
-    buf.render.lines.take(y).toVector.map(_.length + 1).sum + x
+    buf.renderAll.lines.take(y).toVector.map(_.length + 1).sum + x
 }
