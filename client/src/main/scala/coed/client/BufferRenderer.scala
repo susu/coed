@@ -5,12 +5,14 @@ import java.io.PrintStream
 import coed.common.Frame
 
 class BufferedWriter(output: PrintStream) {
-  val buf: StringBuilder = new StringBuilder
+  private val buf: StringBuilder = new StringBuilder
   def append(s: String): Unit = buf.append(s)
   def flush(): Unit = output.print(buf)
 }
 
 object BufferRenderer {
+
+  private val LeftPaddingForLineNumbers: Int = 4
 
   def show(frame: Frame): Unit = asBuffered(output => {
     output.append(Ansi.clearScreenCode)
@@ -23,7 +25,7 @@ object BufferRenderer {
     frame.visibleLines.zip(lineNumbers).foreach {
       case (line, number) => output.append(s"${formatLineNumber(number)} ${poorMansSyntaxHighlight(line)}\n\r")
     }
-    output.append(Ansi.moveCursorCode(frame.cursorPosition.at + 4, frame.cursorPosition.line))
+    output.append(Ansi.moveCursorCode(frame.cursorPosition.at + LeftPaddingForLineNumbers, frame.cursorPosition.line))
   })
 
   private val Colors: IndexedSeq[String] = (0 to 7).map(Ansi.colorForeground)
@@ -34,6 +36,15 @@ object BufferRenderer {
       Ansi.bold + Colors(index) + word + Ansi.resetStyle
     }).mkString(" ")
   }
+
+  def showUserList(users: List[String]): Unit = asBuffered(output =>
+    Ansi.withSavedCursor(output) {
+      users.zipWithIndex.foreach { case(user, index) =>
+        output.append(Ansi.moveCursorCode(Frame.DEFAULT_FRAME_WIDTH + LeftPaddingForLineNumbers + 1, index + 1))
+        output.append("| " + user)
+      }
+    }
+  )
 
   def showAlternateBuffer(text: String): Unit = asBuffered(output => {
     val decoratorLine = Ansi.colorForeground(5) +

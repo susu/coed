@@ -23,6 +23,7 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
   private var frame: Frame = Frame(bufferText = buffer.renderAll, log = log)
 
   private var currentBufferId: Option[BufferId] = None
+  private var currentUserList: List[String] = Nil
 
   override def receive: Receive = {
     case JoinSuccess(bufferList) =>
@@ -45,6 +46,11 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
         }
         case Left(err) => log.info(err.toString)
       }
+
+    case SyncUserList(_, users) =>
+      log.debug(s"SyncUserList: $users")
+      currentUserList = users
+      render()
 
     case move: InternalMessage.MoveCursor =>
       handleMoveCursor(move)
@@ -100,7 +106,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     newFrame
   }
 
-  private def render(): Unit = BufferRenderer.show(frame)
+  private def render(): Unit = {
+    BufferRenderer.show(frame)
+    BufferRenderer.showUserList(currentUserList)
+  }
 
   private def handleMoveCursor(cursor: InternalMessage.MoveCursor): Unit = cursor match {
     case InternalMessage.Left => frame = frame.moveCursorLeft
