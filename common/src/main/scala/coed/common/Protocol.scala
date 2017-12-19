@@ -14,4 +14,6 @@ object Protocol {
   case class Sync(bufferId: BufferId, command: Command, rev: Long) //bufferactor -> wactor -> clientactor
 
   case class Persist(bufferId: BufferId)
+
+  case class SyncUserList(bufferId: BufferId, users: List[String])
 }
