@@ -45,12 +45,15 @@ class WelcomingActor extends Actor {
       log.info(s"User left: $user, ${client.path}")
       connectedUsers = connectedUsers.filterNot(_.actorRef == client)
 
-      buffers.values.foreach { case (bufferActor, clientSet) =>
+      buffers.foreach { case (bufferid, (bufferActor, clientSet)) =>
         clientSet.find(_.actorRef == client).map(clientSet -= _)
 
         if (clientSet.isEmpty)
         {
           bufferActor ! PersistBuffer
+        } else {
+          val userList = clientSet.map(_.user).toList
+          clientSet.foreach { _.actorRef ! SyncUserList(bufferid, userList) }
         }
       }
   }
