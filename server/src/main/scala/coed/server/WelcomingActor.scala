@@ -13,7 +13,7 @@ class WelcomingActor extends Actor {
   type BufferActorRef = ActorRef
   type ClientActorRef = ActorRef
 
-  import WelcomingActor.{ClientDisconnected, ClientInfo, BufferInfo}
+  import WelcomingActor.{ClientDisconnected, ClientInfo, BufferInfo, ClientEditorInfo}
 
   val log = Logging(context.system, this)
   val workspace: String = context.system.settings.config.getString("coed.workspace")
@@ -46,14 +46,14 @@ class WelcomingActor extends Actor {
       connectedUsers = connectedUsers.filterNot(_.actorRef == client)
 
       buffers.foreach { case (bufferid, BufferInfo(bufferActor, clientSet)) =>
-        clientSet.find(_.actorRef == client).map(clientSet -= _)
+        clientSet.find(_.info.actorRef == client).map(clientSet -= _)
 
         if (clientSet.isEmpty)
         {
           bufferActor ! PersistBuffer
         } else {
-          val userList = clientSet.map(_.user).toList
-          clientSet.foreach { _.actorRef ! SyncUserList(bufferid, userList) }
+          val userList = clientSet.map(_.info.user).toList
+          clientSet.foreach { _.info.actorRef ! SyncUserList(bufferid, userList) }
         }
       }
   }
@@ -65,15 +65,15 @@ class WelcomingActor extends Actor {
     log.info(s"User '${clientInfo.user}' opening buffer $bid")
     if (buffers.contains(bid)) {
       buffers(bid).buffer forward openMsg
-      buffers(bid).clients.add(clientInfo)
+      buffers(bid).clients.add(ClientEditorInfo(clientInfo))
     } else {
       val bufferActor = context.actorOf(Props(new BufferActor(bid, workspace)))
-      val valueToInsert = BufferInfo(bufferActor, mutable.Set(clientInfo))
+      val valueToInsert = BufferInfo(bufferActor, mutable.Set(ClientEditorInfo(clientInfo)))
       buffers += (bid -> valueToInsert)
       bufferActor forward openMsg
     }
-    val userList = buffers(bid).clients.map(_.user).toList
-    buffers(bid).clients.foreach(_.actorRef ! SyncUserList(bid, userList))
+    val userList = buffers(bid).clients.map(_.info.user).toList
+    buffers(bid).sendToClients(SyncUserList(bid, userList), self)
   }
 
   private def handleEditMessage(editMsg: Edit): Unit = {
@@ -91,9 +91,9 @@ object WelcomingActor {
   case class ClientDisconnected(user: String, clientActorRef: ActorRef)
   case class ClientInfo(user: String, actorRef: ActorRef)
 
-  case class BufferInfo(buffer: ActorRef, clients: mutable.Set[ClientInfo]) {
-    def sendToClients(msg: Any, self: ActorRef): Unit = clients.foreach { _.actorRef.tell(msg, self) }
+  case class BufferInfo(buffer: ActorRef, clients: mutable.Set[ClientEditorInfo]) {
+    def sendToClients(msg: Any, self: ActorRef): Unit = clients.foreach { _.info.actorRef.tell(msg, self) }
   }
 
-  case class ClientEditorInfo(info: ClientInfo, cursorPos: Int)
+  case class ClientEditorInfo(info: ClientInfo, cursorPos: Int = 0)
 }
