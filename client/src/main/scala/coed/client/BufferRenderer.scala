@@ -12,9 +12,7 @@ class BufferedWriter(output: PrintStream) {
 
 object BufferRenderer {
 
-  def show(frame: Frame): Unit = {
-    val output = new BufferedWriter(Console.out)
-
+  def show(frame: Frame): Unit = asBuffered(output => {
     output.append(Ansi.clearScreenCode)
     val indexFrom = frame.bufferOffset._2
     val lineNumbers = indexFrom to (indexFrom + Frame.DEFAULT_FRAME_HEIGHT)
@@ -26,8 +24,7 @@ object BufferRenderer {
       case (line, number) => output.append(s"${formatLineNumber(number)} ${poorMansSyntaxHighlight(line)}\n\r")
     }
     output.append(Ansi.moveCursorCode(frame.cursorPosition.at + 4, frame.cursorPosition.line))
-    output.flush()
-  }
+  })
 
   private val Colors: IndexedSeq[String] = (0 to 7).map(Ansi.colorForeground)
 
@@ -38,8 +35,7 @@ object BufferRenderer {
     }).mkString(" ")
   }
 
-  def showAlternateBuffer(text: String): Unit = {
-    val output = new BufferedWriter(Console.out)
+  def showAlternateBuffer(text: String): Unit = asBuffered(output => {
     val decoratorLine = Ansi.colorForeground(5) +
       (0 to Frame.DEFAULT_FRAME_WIDTH).map(_ => "-").mkString("") +
       Ansi.resetColor + "\r\n"
@@ -57,11 +53,16 @@ object BufferRenderer {
       output.append(Ansi.resetColor + "\n\r")
     })
     output.append(decoratorLine)
-    output.flush()
-  }
+  })
 
   def leftpad(number: Int): String = {
     f"$number%03d"
+  }
+
+  def asBuffered(closure: BufferedWriter => Unit): Unit = {
+    val output: BufferedWriter = new BufferedWriter(Console.out)
+    closure(output)
+    output.flush()
   }
 }
 
