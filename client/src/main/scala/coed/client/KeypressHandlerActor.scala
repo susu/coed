@@ -41,7 +41,10 @@ class KeypressHandlerActor(clientActor: ActorRef) extends FSM[KeypressHandlerAct
       stay using NormalModeState("")
 
     case Event(KeyPressMessage(Character('q')), NormalModeState("")) =>
-      System.exit(0)
+      Console.err.println("Shutting down client ActorSystem...")
+      context.system.terminate()
+        .onComplete(_ => Console.err.println("ActorSystem terminated. Bye."))(
+          scala.concurrent.ExecutionContext.global)
       stay using NormalModeState("")
 
     case Event(KeyPressMessage(Character(c)), NormalModeState("v")) =>
