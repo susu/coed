@@ -16,4 +16,6 @@ object Protocol {
   case class Persist(bufferId: BufferId)
 
   case class SyncUserList(bufferId: BufferId, users: List[String])
+
+  case class CursorPositionUpdate(bufferId: BufferId, position: Int)
 }
