@@ -12,4 +12,12 @@ object Ansi {
   val resetBold: String = "\u001B[22m"
 
   val resetStyle: String = resetBold + resetColor
+  val saveCursor: String = "\u001B7"
+  val restoreCursor: String = "\u001B8"
+
+  def withSavedCursor(output: BufferedWriter)(closure: => Unit): Unit = {
+    output.append(saveCursor)
+    closure
+    output.append(restoreCursor)
+  }
 }
