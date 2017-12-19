@@ -5,17 +5,20 @@
 
 package coed.common
 
+import java.io.PrintWriter
+
 import akka.actor.Actor
-import akka.event.Logging.Debug
-import akka.event.Logging.Error
-import akka.event.Logging.Info
-import akka.event.Logging.InitializeLogger
-import akka.event.Logging.LoggerInitialized
-import akka.event.Logging.Warning
+import akka.event.Logging._
 
 class CustomAkkaLogger extends Actor {
+
+  var outputFile: Option[PrintWriter] = None
+
   def receive: Receive = {
-    case InitializeLogger(_) => sender() ! LoggerInitialized
+    case InitializeLogger(_) => {
+      outputFile = Some(new PrintWriter("akka.log", "UTF-8"))
+      sender() ! LoggerInitialized
+    }
 
     case Error(cause: Throwable, logSource, logClass: Class[_], message) =>
       emit(format("ERROR", logSource, logClass, message))
@@ -39,6 +42,7 @@ class CustomAkkaLogger extends Actor {
 
 
   private def emit(text: String): Unit = {
-    Console.err.println(text)
+    outputFile.foreach(_.println(text))
+    outputFile.foreach(_.flush())
   }
 }

@@ -1,5 +1,7 @@
 package coed.common
 
+import akka.event.LoggingAdapter
+
 case class FrameCoords(at: Int, line: Int) {
   require(at > 0)
   require(line > 0)
@@ -17,7 +19,8 @@ case class Frame(bufferText: String,
                  bufferOffset: (Int, Int) = (0, 0),  // x and y offsets
                  cursorPosition: FrameCoords = FrameCoords(1, 1), // indexing starts from 1, 1
                  frameWidth: Int = Frame.DEFAULT_FRAME_WIDTH,
-                 frameHeight: Int = Frame.DEFAULT_FRAME_HEIGHT) {
+                 frameHeight: Int = Frame.DEFAULT_FRAME_HEIGHT,
+                 log: LoggingAdapter) {
 
   require(bufferOffset._1 >= 0)
   require(bufferOffset._2 >= 0)
@@ -29,6 +32,7 @@ case class Frame(bufferText: String,
   private val linesInBuffer: Vector[String] = bufferText.lines.toVector
 
   val visibleLines: Seq[String] = (1 to frameHeight).map { calculateVisibleLine(_) }
+  logDebuginfo()
 
   def moveCursorUp: Frame = {
     if (cursorPosition.line == 1) {
@@ -41,10 +45,12 @@ case class Frame(bufferText: String,
 
   def moveCursorDown: Frame = {
     if (cursorPosition.line == frameHeight) {
+      // most bottom line, might need to scroll
       if (bufferOffset._2 == linesInBuffer.size - frameHeight) this
       else this.copy(bufferOffset = (this.bufferOffset._1, this.bufferOffset._2 + 1))
     } else {
-      this.copy(cursorPosition = FrameCoords(this.cursorPosition.at, this.cursorPosition.line + 1))
+      if (this.cursorPosition.line == linesInBuffer.size - bufferOffset._2) this
+      else this.copy(cursorPosition = FrameCoords(this.cursorPosition.at, this.cursorPosition.line + 1))
     }
   }
 
@@ -57,7 +63,14 @@ case class Frame(bufferText: String,
     }
   }
 
-  val currentLineLength = if (linesInBuffer.size > 0 ) linesInBuffer(cursorPosition.line - 1).size
+  private def logDebuginfo(): Unit = {
+    log.info(s"Frame: bufferoffset=$bufferOffset")
+    log.info(s"Frame: cursorpos.line=${cursorPosition.line}")
+    log.info(s"Frame: linesInBuffer.size=${linesInBuffer.size}")
+  }
+
+
+  val currentLineLength = if (linesInBuffer.nonEmpty) linesInBuffer(cursorPosition.line - 1).size
                           else 0
 
   def moveCursorRight: Frame = {

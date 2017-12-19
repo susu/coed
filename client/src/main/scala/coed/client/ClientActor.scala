@@ -6,6 +6,7 @@
 package coed.client
 
 import akka.actor.{Actor, ActorSelection}
+import akka.event.Logging
 import coed.common.Protocol._
 import coed.common._
 
@@ -14,8 +15,10 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
 
   remoteActor ! Join
 
+  private val log = Logging(context.system, this)
+
   private var buffer: Buffer = new StringBuf("")
-  private var frame: Frame = Frame(bufferText = buffer.render)
+  private var frame: Frame = Frame(bufferText = buffer.render, log = log)
 
   private var currentBufferId: Option[BufferId] = None
 
@@ -25,20 +28,20 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       remoteActor ! Open(bufferList.head)
 
     case OpenSuccess(bufferContent, revision) =>
-      log(s"Buffer opened: $currentBufferId, $revision")
+      log.info(s"Buffer opened: $currentBufferId, $revision")
       buffer = new StringBuf(bufferContent)
       frame = frame.copy(bufferText = buffer.render)
       render()
 
     case Sync(bufferId, cmd, r) =>
-      log(s"Sync: $bufferId, $cmd, $r")
+      log.info(s"Sync: $bufferId, $cmd, $r")
       buffer.applyCommand(cmd) match {
         case Right(newBuffer) => {
           frame = syncFrame(buffer, newBuffer, cmd)
           buffer = newBuffer
           render()
         }
-        case Left(err) => log(err.toString)
+        case Left(err) => log.info(err.toString)
       }
 
     case move: InternalMessage.MoveCursor =>
@@ -106,11 +109,6 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     case InternalMessage.Bottom => frame = frame.copy(bufferOffset = (0, buffer.render.lines.size), cursorPosition = FrameCoords(1, 1))
     case InternalMessage.LineStart => frame = frame.copy(cursorPosition = frame.cursorPosition.copy(at=1))
     case InternalMessage.LineEnd => frame = frame.copy(cursorPosition = frame.cursorPosition.copy(at=frame.currentLineLength))
-  }
-
-  private def log(msg: String): Unit = {
-    if (msg == null)
-      Console.err.println(msg + "\r\n")
   }
 }
 
