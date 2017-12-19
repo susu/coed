@@ -6,7 +6,7 @@ final case object ApplicationFailure
 trait Buffer {
   def applyCommand(command: Command): Either[BufferError, Buffer]
   def renderAll: String
-  def render(start: Buffer.LineIndex, end: Buffer.LineIndex): String
+  def render(start: Buffer.LineIndex, end: Buffer.LineIndex): Vector[Buffer.Line]
   def start: Buffer.Position
   def end: Buffer.Position
   def numberOfLines: Int
