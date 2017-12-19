@@ -17,7 +17,14 @@ class CustomAkkaLogger extends Actor {
 
   def receive: Receive = {
     case InitializeLogger(_) => {
-      outputFile = Some(new PrintWriter(logFilename, "UTF-8"))
+      try {
+        outputFile = Some(new PrintWriter(logFilename, "UTF-8"))
+      } catch {
+        case exc: Exception =>
+          Console.err.println(s"Could not set up logging: $exc, falling back to stderr.")
+          exc.getStackTrace.foreach(Console.err.println)
+          outputFile = Some(new PrintWriter(Console.err))
+      }
       sender() ! LoggerInitialized
     }
 
@@ -48,7 +55,7 @@ class CustomAkkaLogger extends Actor {
   }
 
   private lazy val logFilename: String = {
-    val appName = System.getProperty("app.name", ManagementFactory.getRuntimeMXBean.getName)
+    val appName = Option(System.getProperty("app.name")).getOrElse(ManagementFactory.getRuntimeMXBean.getName)
     s"akka.coed-$appName.log"
   }
 }
