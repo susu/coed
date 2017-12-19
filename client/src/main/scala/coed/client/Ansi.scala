@@ -8,4 +8,8 @@ object Ansi {
   def colorBackground(bg: Int): String = s"\u001B[48;5;${bg}m"
 
   val resetColor: String = "\u001B[0m"
+  val bold: String = "\u001B[1m"
+  val resetBold: String = "\u001B[22m"
+
+  val resetStyle: String = resetBold + resetColor
 }

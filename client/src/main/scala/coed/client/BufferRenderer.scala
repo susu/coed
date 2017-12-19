@@ -23,10 +23,19 @@ object BufferRenderer {
       s"${Ansi.colorForeground(3)}${leftpad(number)}${Ansi.resetColor}"
 
     frame.visibleLines.zip(lineNumbers).foreach {
-      case (line, number) => output.append(s"${formatLineNumber(number)} $line\n\r")
+      case (line, number) => output.append(s"${formatLineNumber(number)} ${poorMansSyntaxHighlight(line)}\n\r")
     }
     output.append(Ansi.moveCursorCode(frame.cursorPosition.at + 4, frame.cursorPosition.line))
     output.flush()
+  }
+
+  private val Colors: IndexedSeq[String] = (0 to 7).map(Ansi.colorForeground)
+
+  private def poorMansSyntaxHighlight(line: String): String = {
+    line.split(' ').map(word => {
+      val index = Math.abs(word.hashCode % Colors.length)
+      Ansi.bold + Colors(index) + word + Ansi.resetStyle
+    }).mkString(" ")
   }
 
   def showAlternateBuffer(text: String): Unit = {
