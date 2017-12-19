@@ -9,7 +9,6 @@ trait Buffer {
   def render(start: Buffer.LineIndex, end: Buffer.LineIndex): Vector[Buffer.Line]
   def start: Buffer.Position
   def end: Buffer.Position
-  def numberOfLines: Int
 }
 
 object Buffer {
