@@ -52,23 +52,23 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
       remoteActor ! Persist(currentBufferId.get)
 
     case InternalMessage.Delete =>
-      remoteActor ! Edit(currentBufferId.get, Delete(cursorPosition(frame, buffer), 1), 0)
+      remoteActor ! Edit(currentBufferId.get, Delete(Buffer.Position(cursorPosition(frame, buffer)), 1), 0)
 
     case InternalMessage.DeleteLine =>
-      remoteActor ! Edit(currentBufferId.get, Delete(lineStartPosition(frame, buffer), frame.currentLineLength + 1), 0)
+      remoteActor ! Edit(currentBufferId.get, Delete(Buffer.Position(lineStartPosition(frame, buffer)), frame.currentLineLength + 1), 0)
 
     case InternalMessage.DeleteUntilEndOfLine =>
       val restOfLine: Int = frame.currentLineLength - frame.cursorPosition.at
-      remoteActor ! Edit(currentBufferId.get, Delete(cursorPosition(frame, buffer), restOfLine + 1), 0)
+      remoteActor ! Edit(currentBufferId.get, Delete(Buffer.Position(cursorPosition(frame, buffer)), restOfLine + 1), 0)
 
     case InternalMessage.InsertText(text) =>
-      remoteActor ! Edit(currentBufferId.get, Insert(text, cursorPosition(frame, buffer)), 0)
+      remoteActor ! Edit(currentBufferId.get, Insert(text, Buffer.Position(cursorPosition(frame, buffer))), 0)
 
     case InternalMessage.InsertAfterText(text) =>
-      remoteActor ! Edit(currentBufferId.get, Insert(text, cursorPosition(frame, buffer) + 1), 0)
+      remoteActor ! Edit(currentBufferId.get, Insert(text, Buffer.Position(cursorPosition(frame, buffer) + 1)), 0)
 
     case InternalMessage.InsertNextLineText(text) =>
-      remoteActor ! Edit(currentBufferId.get, Insert("\n" ++ text, cursorPosition(frame, buffer) + frame.currentLineLength), 0)
+      remoteActor ! Edit(currentBufferId.get, Insert("\n" ++ text, Buffer.Position(cursorPosition(frame, buffer) + frame.currentLineLength)), 0)
 
     case InternalMessage.TextInsertBufferChanged(text) =>
       BufferRenderer.showAlternateBuffer(text)
@@ -81,12 +81,12 @@ class ClientActor(remoteActor: ActorSelection) extends Actor {
     def lines(b: Buffer): Int = b.render.lines.size
 
     val lineDiff: Int = lines(oldBuffer) - lines(newBuffer)
-    val newFrame: Frame = if (cmd.position < framePosition(frame, oldBuffer)) {
+    val newFrame: Frame = if (cmd.position < Buffer.Position(framePosition(frame, oldBuffer))) {
       val (offsetX, offsetY) = frame.bufferOffset
       frame.copy(
         bufferText = newBuffer.render,
         bufferOffset = (offsetX, offsetY - lineDiff))
-    } else if (cmd.position < cursorPosition(frame, oldBuffer)) {
+    } else if (cmd.position < Buffer.Position(cursorPosition(frame, oldBuffer))) {
       val oldCoords: FrameCoords = frame.cursorPosition
       frame.copy(
         bufferText = newBuffer.render,
