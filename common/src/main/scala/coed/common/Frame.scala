@@ -2,105 +2,80 @@ package coed.common
 
 import akka.event.LoggingAdapter
 
-case class FrameCoords(at: Int, line: Int) {
-  require(at > 0)
-  require(line > 0)
+case class FrameCoord(x: Int, y: Int) {
+  require(x >= 0)
+  require(y >= 0)
 }
 
-/** Class to represent the displayed rectangular section of a buffer.
-  *
-  * @param bufferText  text of buffer to display in frame
-  * @param bufferOffset coordinates of top left corner of frame
-  * @param cursorPosition cursor position in frame coordinates
-  * @param frameWidth
-  * @param frameHeight
-  */
-case class Frame(bufferText: String,
-                 bufferOffset: (Int, Int) = (0, 0),  // x and y offsets
-                 cursorPosition: FrameCoords = FrameCoords(1, 1), // indexing starts from 1, 1
+case class Frame(buffer: Buffer,
+                 bufferOffset: Buffer.LineIndex = Buffer.LineIndex(0),
+                 cursorPosition: FrameCoord = FrameCoord(0, 0),
                  frameWidth: Int = Frame.DEFAULT_FRAME_WIDTH,
                  frameHeight: Int = Frame.DEFAULT_FRAME_HEIGHT,
                  log: LoggingAdapter) {
 
-  require(bufferOffset._1 >= 0)
-  require(bufferOffset._2 >= 0)
   require(frameWidth > 0)
   require(frameHeight > 0)
-  require(cursorPosition.line > 0 && cursorPosition.line <= frameHeight)
-  require(cursorPosition.at > 0 && cursorPosition.at <= frameWidth)
+  require(cursorPosition.y < frameHeight)
 
-  private val linesInBuffer: Vector[String] = bufferText.lines.toVector
+  println("1")
+  val visibleLines: Vector[Buffer.Line] = buffer.render(bufferOffset, bufferOffset.add(frameHeight))
 
-  val visibleLines: Seq[String] = (1 to frameHeight).map { calculateVisibleLine(_) }
+  println("2")
+  val currentLine: Buffer.Line = visibleLines(cursorPosition.y)
+  println("3")
+  val cursorInBuffer: Buffer.Position = currentLine.start.add(cursorPosition.x)
+  println("4")
+  val startInBuffer: Buffer.Position = visibleLines(0).start
+  println("5")
+
   logDebuginfo()
 
   def moveCursorUp: Frame = {
-    if (cursorPosition.line == 1) {
-      if (bufferOffset._2 == 0)  this
-      else this.copy(bufferOffset = (this.bufferOffset._1, this.bufferOffset._2 - 1))
+    if (cursorPosition.y == 0) {
+      this.copy(bufferOffset = this.bufferOffset.moveUp)
     } else {
-      this.copy(cursorPosition = FrameCoords(this.cursorPosition.at, this.cursorPosition.line - 1))
+      this.copy(cursorPosition = FrameCoord(this.cursorPosition.x, this.cursorPosition.y - 1))
     }
   }
 
   def moveCursorDown: Frame = {
-    if (cursorPosition.line == frameHeight) {
-      // most bottom line, might need to scroll
-      if (bufferOffset._2 == linesInBuffer.size - frameHeight) this
-      else this.copy(bufferOffset = (this.bufferOffset._1, this.bufferOffset._2 + 1))
+    if (cursorPosition.y == (frameHeight - 1)) {
+      if (bufferOffset.index == visibleLines.size - frameHeight) this
+      else this.copy(bufferOffset = this.bufferOffset.moveDown)
     } else {
-      if (this.cursorPosition.line == linesInBuffer.size - bufferOffset._2) this
-      else this.copy(cursorPosition = FrameCoords(this.cursorPosition.at, this.cursorPosition.line + 1))
+      if (this.cursorPosition.y == visibleLines.size - bufferOffset.index) this
+      else this.copy(cursorPosition = FrameCoord(this.cursorPosition.x, this.cursorPosition.y + 1))
     }
   }
 
   def moveCursorLeft: Frame = {
-    if (cursorPosition.at == 1) {
-      if (bufferOffset._1 == 0)  this
-      else this.copy(bufferOffset = (this.bufferOffset._1 - 1, this.bufferOffset._2))
+    if (cursorPosition.x == 0) {
+      this
     } else {
-      this.copy(cursorPosition = FrameCoords(this.cursorPosition.at - 1, this.cursorPosition.line))
+      this.copy(cursorPosition = FrameCoord(this.cursorPosition.x - 1, this.cursorPosition.y))
     }
   }
 
   private def logDebuginfo(): Unit = {
     log.info(s"Frame: bufferoffset=$bufferOffset")
-    log.info(s"Frame: cursorpos.line=${cursorPosition.line}")
-    log.info(s"Frame: linesInBuffer.size=${linesInBuffer.size}")
+    log.info(s"Frame: cursorpos.line=${cursorPosition.y}")
+    log.info(s"Frame: visibleLines.size=${visibleLines.size}")
   }
 
-
-  val currentLineLength = if (linesInBuffer.nonEmpty) linesInBuffer(cursorPosition.line - 1).size
+  val currentLineLength = if (visibleLines.nonEmpty) visibleLines(cursorPosition.y).line.size
                           else 0
 
   def moveCursorRight: Frame = {
-    if (cursorPosition.at == frameWidth) { // cursor is at right edge of frame
-        if (bufferOffset._1 == currentLineLength - frameWidth) this
-        else this.copy(bufferOffset = (this.bufferOffset._1 + 1, this.bufferOffset._2))
+    if (cursorPosition.x == frameWidth) {
+      this
     } else {
-        if (bufferOffset._1 + cursorPosition.at >= currentLineLength) { //mid of frame, end of line
+        if (cursorPosition.x >= currentLineLength) {
           this
         } else  {
-          this.copy(cursorPosition = FrameCoords(this.cursorPosition.at + 1, this.cursorPosition.line))
+          this.copy(cursorPosition = FrameCoord(this.cursorPosition.x + 1, this.cursorPosition.y))
         }
     }
-  }
-
-  private def calculateVisibleLine(lineIndexInFrame: Int): String = {
-    val fullLineFromBuffer = translateBufferLineToFrameLine(lineIndexInFrame)
-    visiblePartFromLine(fullLineFromBuffer)
-  }
-
-  private def translateBufferLineToFrameLine(lineIndexInFrame: Int): String = {
-    val whichLineInBufferText = lineIndexInFrame + bufferOffset._2  // indexed from 1
-
-    if (whichLineInBufferText > linesInBuffer.size) Frame.EMPTY_LINE_REPRESENTATION
-    else linesInBuffer(whichLineInBufferText - 1)
-  }
-
-  private def visiblePartFromLine(fullLineFromBuffer: String): String = {
-    val strippedFromLeft = fullLineFromBuffer.drop(bufferOffset._1)
-    strippedFromLeft.take(frameWidth)
   }
 }
 

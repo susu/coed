@@ -3,6 +3,7 @@ package coed.client
 import java.io.PrintStream
 
 import coed.common.Frame
+import coed.common.Buffer
 
 class BufferedWriter(output: PrintStream) {
   private val buf: StringBuilder = new StringBuilder
@@ -16,16 +17,14 @@ object BufferRenderer {
 
   def show(frame: Frame): Unit = asBuffered(output => {
     output.append(Ansi.clearScreenCode)
-    val indexFrom = frame.bufferOffset._2
-    val lineNumbers = indexFrom to (indexFrom + Frame.DEFAULT_FRAME_HEIGHT)
 
     def formatLineNumber(number: Int) =
       s"${Ansi.colorForeground(3)}${leftpad(number)}${Ansi.resetColor}"
 
-    frame.visibleLines.zip(lineNumbers).foreach {
-      case (line, number) => output.append(s"${formatLineNumber(number)} ${poorMansSyntaxHighlight(line)}\n\r")
+    frame.visibleLines.foreach {
+      case Buffer.Line(line, index, _) => output.append(s"${formatLineNumber(index.index)} ${poorMansSyntaxHighlight(line)}\n\r")
     }
-    output.append(Ansi.moveCursorCode(frame.cursorPosition.at + LeftPaddingForLineNumbers, frame.cursorPosition.line))
+    output.append(Ansi.moveCursorCode(frame.cursorPosition.x + LeftPaddingForLineNumbers, frame.cursorPosition.y))
   })
 
   private val Colors: IndexedSeq[String] = (0 to 7).map(Ansi.colorForeground)

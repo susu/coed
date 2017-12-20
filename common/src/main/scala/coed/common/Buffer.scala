@@ -14,9 +14,15 @@ trait Buffer {
 object Buffer {
   case class Position(position: Int) extends AnyVal {
     def <(other: Position): Boolean = this.position < other.position
+    def +(other: Position): Position = Position(position + other.position)
+    def add(i: Int): Position = Position(position + i)
   }
   implicit val ordering = Ordering.by { pos: Position => pos.position }
 
-  case class LineIndex(index: Int) extends AnyVal
+  case class LineIndex(index: Int) extends AnyVal {
+    def moveUp: LineIndex = LineIndex(Math.max(0, index - 1))
+    def moveDown: LineIndex = LineIndex(index + 1)
+    def add(i: Int): LineIndex = LineIndex(index + i)
+  }
   case class Line(line: String, lineIndex: LineIndex, start: Position)
 }
