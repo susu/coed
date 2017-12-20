@@ -2,6 +2,7 @@ package coed.server
 
 import akka.actor.{ActorSystem, Props}
 import coed.common.{AkkaConfigFactory, IpAddress}
+import coed.server.persistence.RealWorkSpace
 import org.rogach.scallop.{ScallopConf, ScallopOption}
 
 object Server extends App {
@@ -21,5 +22,8 @@ object Server extends App {
   val config = AkkaConfigFactory.remoteConfigWithPort(localIp, 42000)
   val system = ActorSystem(AkkaConfigFactory.ServerActorSystemName, config)
 
-  val welcomingActor = system.actorOf(Props(new WelcomingActor), AkkaConfigFactory.WelcomingActorName)
+  val workspace = new RealWorkSpace(config.getString("coed.workspace"))
+
+  val welcomingActor = system.actorOf(Props(new WelcomingActor(workspace)),
+    AkkaConfigFactory.WelcomingActorName)
 }

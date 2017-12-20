@@ -3,6 +3,7 @@ import scala.sys.process.Process
 val commonDeps = Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.5.6",
   "com.typesafe.akka" %% "akka-remote" % "2.5.6",
+  "com.typesafe.akka" %% "akka-testkit" % "2.5.6" % "test",
   "com.typesafe" % "config" % "1.3.1",
   "org.rogach" %% "scallop" % "3.1.0",
   "org.scalatest" %% "scalatest" % "3.0.0" % "test"

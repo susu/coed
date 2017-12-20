@@ -9,14 +9,13 @@ import coed.server.persistence.Workspace
 import scala.collection.mutable
 
 
-class WelcomingActor extends Actor {
+class WelcomingActor(workspace: Workspace) extends Actor {
   type BufferActorRef = ActorRef
   type ClientActorRef = ActorRef
 
   import WelcomingActor.{ClientDisconnected, ClientInfo, BufferInfo, ClientEditorInfo}
 
   val log = Logging(context.system, this)
-  val workspace: String = context.system.settings.config.getString("coed.workspace")
 
   var connectedUsers: List[ClientInfo] = Nil
 
@@ -27,7 +26,7 @@ class WelcomingActor extends Actor {
       log.info(s"User joined: $user (${sender().path})")
       context.watchWith(sender(), ClientDisconnected(user, sender()))
       connectedUsers = ClientInfo(user, sender()) :: connectedUsers
-      sender() ! JoinSuccess(Workspace.listBuffers(workspace).toList)
+      sender() ! JoinSuccess(workspace.listBuffers)
 
     case o: Open =>
       handleOpenMessage(o)
