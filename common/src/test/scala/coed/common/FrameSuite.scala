@@ -1,5 +1,6 @@
 package coed.common
 
+import akka.event.LoggingAdapter
 import org.scalatest.{FreeSpec, Matchers}
 
 class FrameSuite extends FreeSpec with Matchers {
@@ -9,13 +10,27 @@ class FrameSuite extends FreeSpec with Matchers {
                                 "456789101112\n" +
                                 "56789\n"
 
+  val loggingAdapter: LoggingAdapter = new LoggingAdapter {
+    override protected def notifyError(message: String): Unit = {}
+    override protected def notifyError(cause: Throwable, message: String): Unit = {}
+    override protected def notifyDebug(message: String): Unit = {}
+    override protected def notifyWarning(message: String): Unit = {}
+    override protected def notifyInfo(message: String): Unit = {}
+    override def isInfoEnabled: Boolean = false
+    override def isErrorEnabled: Boolean = false
+    override def isDebugEnabled: Boolean = false
+    override def isWarningEnabled: Boolean = false
+  }
+
   "calculating visible lines in buffer" - {
+
     "when offset is (0, 0) and whole frame fits in buffer" in {
       val testFrame = Frame (bufferText = testBufferText,
                              bufferOffset = (0, 0),
                              cursorPosition = FrameCoords(1, 1),
                              frameHeight = 3,
-                             frameWidth = 5)
+                             frameWidth = 5,
+                             log = loggingAdapter)
 
       val expectedLines = Seq("12345", "23", "34567")
 
@@ -27,7 +42,8 @@ class FrameSuite extends FreeSpec with Matchers {
         bufferOffset = (2, 1),
         cursorPosition = FrameCoords(1, 1),
         frameHeight = 3,
-        frameWidth = 5)
+        frameWidth = 5,
+        log = loggingAdapter)
 
       val expectedLines = Seq("", "56789", "67891")
 
@@ -39,7 +55,8 @@ class FrameSuite extends FreeSpec with Matchers {
         bufferOffset = (0, 0),
         cursorPosition = FrameCoords(1, 1),
         frameHeight = 6,
-        frameWidth = 1)
+        frameWidth = 1,
+        log = loggingAdapter)
 
       val expectedLines = Seq("1", "2", "3", "4", "5", Frame.EMPTY_LINE_REPRESENTATION)
 
@@ -50,13 +67,13 @@ class FrameSuite extends FreeSpec with Matchers {
   "cursor movement" - {
     "up" - {
       "should return same frame when [Y buffer offset: 0, Y cursor pos: 1 (top of frame)]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 0), cursorPosition = FrameCoords(3, 1))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 0), cursorPosition = FrameCoords(3, 1), log = loggingAdapter)
         val newFrame = frame.moveCursorUp
         newFrame shouldBe frame
       }
 
       "only change should be 1 less Y buffer offset when [Y buffer offset: >0, Y cursor pos: 1]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 1), cursorPosition = FrameCoords(3, 1))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 1), cursorPosition = FrameCoords(3, 1), log = loggingAdapter)
         val newFrame = frame.moveCursorUp
         newFrame.bufferOffset._1 shouldBe frame.bufferOffset._1
         newFrame.bufferOffset._2 shouldBe frame.bufferOffset._2 - 1
@@ -64,7 +81,7 @@ class FrameSuite extends FreeSpec with Matchers {
       }
 
       "only change should be 1 less Y cursor pos when [Y buffer offset: >0, Y cursor pos: >1]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 1), cursorPosition = FrameCoords(1, 2))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 1), cursorPosition = FrameCoords(1, 2), log = loggingAdapter)
         val newFrame = frame.moveCursorUp
         newFrame.bufferOffset shouldBe frame.bufferOffset
         newFrame.cursorPosition.at shouldBe frame.cursorPosition.at
@@ -74,13 +91,13 @@ class FrameSuite extends FreeSpec with Matchers {
 
     "left" - {
       "should return same frame when [X buffer offset: 0, X cursor pos: 1 (left side of frame)]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (0, 3), cursorPosition = FrameCoords(1, 3))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (0, 3), cursorPosition = FrameCoords(1, 3), log = loggingAdapter)
         val newFrame = frame.moveCursorLeft
         newFrame shouldBe frame
       }
 
       "only change should be 1 less X buffer offset when [X buffer offset: >0, X cursor pos: 1]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (1, 3), cursorPosition = FrameCoords(1, 3))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (1, 3), cursorPosition = FrameCoords(1, 3), log = loggingAdapter)
         val newFrame = frame.moveCursorLeft
         newFrame.bufferOffset._1 shouldBe frame.bufferOffset._1 - 1
         newFrame.bufferOffset._2 shouldBe frame.bufferOffset._2
@@ -88,7 +105,7 @@ class FrameSuite extends FreeSpec with Matchers {
       }
 
       "only change should be 1 less X cursor pos when [X buffer offset: >0, X cursor pos: >1]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (1, 3), cursorPosition = FrameCoords(2, 2))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (1, 3), cursorPosition = FrameCoords(2, 2), log = loggingAdapter)
         val newFrame = frame.moveCursorLeft
         newFrame.bufferOffset shouldBe frame.bufferOffset
         newFrame.cursorPosition.at shouldBe frame.cursorPosition.at - 1
@@ -103,7 +120,7 @@ class FrameSuite extends FreeSpec with Matchers {
         val frame = Frame (bufferText = testBufferText,
                            frameHeight = testFrameHeight,
                            bufferOffset = (3, testBufferHeight - testFrameHeight),
-                           cursorPosition = FrameCoords(3, testFrameHeight))
+                           cursorPosition = FrameCoords(3, testFrameHeight), log = loggingAdapter)
 
         val newFrame = frame.moveCursorDown
         newFrame shouldBe frame
@@ -115,7 +132,7 @@ class FrameSuite extends FreeSpec with Matchers {
         val frame = Frame (bufferText = testBufferText,
                            frameHeight = testFrameHeight,
                            bufferOffset = (3, (testBufferHeight - testFrameHeight) - 1),
-                           cursorPosition = FrameCoords(3, testFrameHeight))
+                           cursorPosition = FrameCoords(3, testFrameHeight), log = loggingAdapter)
 
         val newFrame = frame.moveCursorDown
         newFrame.bufferOffset._1 shouldBe frame.bufferOffset._1
@@ -124,7 +141,7 @@ class FrameSuite extends FreeSpec with Matchers {
       }
 
       "only change should be 1 more Y cursor pos when [Y cursor pos: < frame height]" in {
-        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 1), cursorPosition = FrameCoords(1, 2))
+        val frame = Frame (bufferText = testBufferText, bufferOffset = (3, 1), cursorPosition = FrameCoords(1, 2), log = loggingAdapter)
         val newFrame = frame.moveCursorDown
         newFrame.bufferOffset shouldBe frame.bufferOffset
         newFrame.cursorPosition.at shouldBe frame.cursorPosition.at
@@ -145,7 +162,8 @@ class FrameSuite extends FreeSpec with Matchers {
       val frame = Frame (bufferText = testText,
         frameWidth = testFrameWidth,
         bufferOffset = (currentLine.size - testFrameWidth, 0),
-        cursorPosition = FrameCoords(testFrameWidth, currentLineNumberInFrameCoords))
+        cursorPosition = FrameCoords(testFrameWidth, currentLineNumberInFrameCoords),
+        log = loggingAdapter)
 
       val newFrame = frame.moveCursorRight
       newFrame shouldBe frame
@@ -155,7 +173,8 @@ class FrameSuite extends FreeSpec with Matchers {
       val frame = Frame (bufferText = testText,
         frameWidth = testFrameWidth,
         bufferOffset = (currentLine.size - testFrameWidth - 1, 0),
-        cursorPosition = FrameCoords(testFrameWidth, currentLineNumberInFrameCoords))
+        cursorPosition = FrameCoords(testFrameWidth, currentLineNumberInFrameCoords),
+        log = loggingAdapter)
 
       val newFrame = frame.moveCursorRight
       newFrame.bufferOffset._1 shouldBe frame.bufferOffset._1 + 1
@@ -168,7 +187,7 @@ class FrameSuite extends FreeSpec with Matchers {
                 "ne\n" +
                 "new"
 
-      val frame = Frame (bufferText = txt, bufferOffset = (0, 0), cursorPosition = FrameCoords(2, 2))
+      val frame = Frame (bufferText = txt, bufferOffset = (0, 0), cursorPosition = FrameCoords(2, 2), log = loggingAdapter)
       val newFrame = frame.moveCursorRight
       newFrame shouldBe frame
     }
@@ -178,7 +197,7 @@ class FrameSuite extends FreeSpec with Matchers {
                 "ne\n" +
                 "new"
 
-      val frame = Frame (bufferText = txt, bufferOffset = (0, 0), cursorPosition = FrameCoords(1, 2))
+      val frame = Frame (bufferText = txt, bufferOffset = (0, 0), cursorPosition = FrameCoords(1, 2), log = loggingAdapter)
       val newFrame = frame.moveCursorRight
       newFrame.bufferOffset shouldBe frame.bufferOffset
       newFrame.cursorPosition.at shouldBe frame.cursorPosition.at + 1
